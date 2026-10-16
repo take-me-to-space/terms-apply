@@ -1,0 +1,33 @@
+_format_version: '2.1'
+services:
+  - name: auth
+    url: http://auth:9999
+    routes:
+      - name: auth
+        paths: [/auth/v1/]
+        strip_path: true
+  - name: rest
+    url: http://rest:3000
+    routes:
+      - name: rest
+        paths: [/rest/v1/]
+        strip_path: true
+plugins:
+  - name: cors
+    config:
+      origins: ['http://127.0.0.1:5174']
+      methods: [GET, POST, PUT, PATCH, DELETE, OPTIONS]
+      headers:
+        [
+          Authorization,
+          apikey,
+          Content-Type,
+          Prefer,
+          Range,
+          X-Client-Info,
+          Accept-Profile,
+          Content-Profile,
+          X-Supabase-Api-Version,
+        ]
+      exposed_headers: [Content-Range, Range, Preference-Applied]
+      max_age: 3600
