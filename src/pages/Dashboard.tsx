@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ArrowRight, Plus, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Alert, Loading, Mark, PageIntro } from '../components/ui';
+import { Alert, Loading, PageIntro } from '../components/ui';
 import {
   friendlyError,
   getCommitments,
@@ -50,11 +50,8 @@ export function Dashboard() {
   return (
     <section className="wrap dashboard">
       <div className="dashboard-top">
-        <PageIntro eyebrow="YOUR WORD, IN WRITING" title="A deal’s a deal.">
-          <p>
-            A place for the things you said you’d do. And an honest record of
-            what happened.
-          </p>
+        <PageIntro title="Your commitments">
+          <p>Open agreements and a record of what happened.</p>
         </PageIntro>
         <Link className="button primary" to="/new">
           <Plus size={18} /> New commitment
@@ -88,11 +85,7 @@ export function Dashboard() {
                   onClick={() => setFilter(f)}
                   aria-pressed={filter === f}
                 >
-                  {f === 'open'
-                    ? 'On the table'
-                    : f === 'history'
-                      ? 'The record'
-                      : 'Everything'}
+                  {f === 'open' ? 'Open' : f === 'history' ? 'History' : 'All'}
                   <span>
                     {f === 'open'
                       ? open.length
@@ -103,31 +96,28 @@ export function Dashboard() {
                 </button>
               ))}
             </div>
-            <span className="list-caption">NO STREAKS. JUST THE RECORD.</span>
+            <span className="list-caption">
+              {records.length}{' '}
+              {records.length === 1 ? 'commitment' : 'commitments'}
+            </span>
           </div>
           {filtered.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-mark">
-                <Mark size={54} />
-              </div>
-              <p className="eyebrow">
-                {records.length ? 'NOTHING HERE FOR NOW' : 'A CLEAN SHEET'}
-              </p>
               <h2>
                 {records.length
                   ? filter === 'history'
-                    ? 'The story is still unfolding.'
-                    : 'Room for the next thing.'
-                  : 'What have you been putting off?'}
+                    ? 'No completed records yet'
+                    : 'No open commitments'
+                  : 'Start with one task.'}
               </h2>
               <p>
                 {records.length
-                  ? 'Your confirmed terms and reports will stay in the record.'
-                  : 'Pick something small enough to finish. You can take on the rest of your life another day.'}
+                  ? 'Your original terms and reports stay available in History.'
+                  : 'Choose something you can finish in the next day or two. Set a deadline and a pledge of your own.'}
               </p>
               <Link className="text-link" to="/new">
                 {records.length
-                  ? 'Write another agreement'
+                  ? 'New commitment'
                   : 'Make your first commitment'}
                 <ArrowRight size={17} />
               </Link>
@@ -143,7 +133,7 @@ export function Dashboard() {
                     to={`/commitments/${c.id}`}
                   >
                     <div className="card-date">
-                      <span>BY</span>
+                      <span>Deadline</span>
                       <strong>{dateOnly(c.deadline_at)}</strong>
                     </div>
                     <div className="card-content">
@@ -159,7 +149,7 @@ export function Dashboard() {
                         </span>
                       </p>
                       <div className="card-pledge">
-                        <span>YOUR PLEDGE</span> {c.pledge}
+                        <span>Your pledge</span> {c.pledge}
                       </div>
                     </div>
                     <ArrowRight className="card-arrow" size={21} />
@@ -171,8 +161,8 @@ export function Dashboard() {
         </>
       )}
       <p className="record-note">
-        These are your own reports, recorded as you give them. An unanswered
-        check-in stays unreported. It doesn’t count as a missed goal.
+        Outcomes are self-reported. An unanswered check-in stays unreported; it
+        doesn’t count as a missed goal.
       </p>
     </section>
   );

@@ -15,8 +15,6 @@
     "format": "prettier --write src netlify tests scripts docs *.ts *.json README.md AGENTS.md .github"
   },
   "dependencies": {
-    "@fontsource/dm-sans": "^5.2.8",
-    "@fontsource/dm-serif-display": "^5.2.8",
     "@supabase/supabase-js": "^2.100.0",
     "lucide-react": "^0.577.0",
     "react": "^19.2.4",

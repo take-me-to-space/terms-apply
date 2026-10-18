@@ -46,10 +46,8 @@ class ErrorBoundary extends Component<
     if (this.state.failed)
       return (
         <main className="wrap narrow">
-          <h1>Something tripped up.</h1>
-          <p>
-            Your saved records are still on the server. Reload to try again.
-          </p>
+          <h1>We couldn’t display this page.</h1>
+          <p>Reload to try again. Your saved records stay with your account.</p>
           <button
             className="button primary"
             onClick={() => window.location.reload()}
@@ -105,7 +103,7 @@ export function App() {
               path="*"
               element={
                 <section className="wrap narrow">
-                  <h1>This page got away.</h1>
+                  <h1>Page not found</h1>
                   <Link className="text-link" to="/">
                     Back to Terms Apply
                   </Link>

@@ -173,18 +173,18 @@ export function status(
       ? {
           label: 'No report yet',
           tone: 'orange',
-          action: 'Time for a check-in',
+          action: 'Report the goal outcome',
         }
       : {
           label: 'In progress',
           tone: 'green',
-          action: 'A little time, well spent',
+          action: 'You can report completion now',
         };
   if (g.outcome === 'on_time')
     return {
       label: 'Completed on time',
       tone: 'green',
-      action: 'A promise followed through',
+      action: 'No pledge is due',
     };
   const p = c.pledge_reports.find((r) => r.outcome !== 'not_yet');
   if (p)

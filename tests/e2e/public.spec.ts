@@ -5,30 +5,28 @@ test('public journey writes, reviews, edits, and retains an unsigned agreement t
 }) => {
   await page.goto('/');
   await expect(
-    page.getByRole('heading', { name: 'Make a deal. With yourself.' }),
+    page.getByRole('heading', { name: 'Put a date on it.' }),
   ).toBeVisible();
-  await page.getByRole('link', { name: 'Put it in writing' }).first().click();
-  await page.getByRole('button', { name: 'Review my terms' }).click();
+  await page.getByRole('link', { name: 'Make a commitment' }).click();
+  await page.getByRole('button', { name: 'Review terms' }).click();
   await expect(
     page.getByText('Give your goal a little more detail.'),
   ).toBeVisible();
-  await page
-    .getByRole('button', { name: 'Borrow the walking example' })
-    .click();
-  await page.getByRole('button', { name: 'Review my terms' }).click();
+  await page.getByRole('button', { name: 'Use the walking example' }).click();
+  await page.getByRole('button', { name: 'Review terms' }).click();
   await expect(
-    page.getByRole('heading', { name: 'Read your fine print.' }),
+    page.getByRole('heading', { name: 'Review your terms' }),
   ).toBeVisible();
   await expect(page.locator('.agreement-sheet')).toContainText(
     'Give up Netflix for the next two evenings.',
   );
-  await page.getByRole('button', { name: 'Edit my terms' }).click();
+  await page.getByRole('button', { name: 'Edit terms' }).click();
   await page.getByLabel('What will you do?').fill('Finish the first chapter');
-  await page.getByRole('button', { name: 'Review my terms' }).click();
+  await page.getByRole('button', { name: 'Review terms' }).click();
   await page.getByRole('checkbox').check();
   await page.getByRole('link', { name: 'Create account to confirm' }).click();
   await expect(
-    page.getByRole('heading', { name: 'Make yourself a deal.' }),
+    page.getByRole('heading', { name: 'Create an account' }),
   ).toBeVisible();
   await page.goto('/new');
   await expect(page.getByLabel('What will you do?')).toHaveValue(
@@ -42,7 +40,7 @@ test('sign-in, sign-up and recovery controls are accessible and do not fake a ba
   await expect(page.getByLabel('Email address')).toBeVisible();
   await page.getByRole('button', { name: 'Forgot your password?' }).click();
   await expect(
-    page.getByRole('heading', { name: 'Lost the password?' }),
+    page.getByRole('heading', { name: 'Reset your password' }),
   ).toBeVisible();
   await page.getByRole('button', { name: 'Back to sign in' }).click();
   await page.getByRole('button', { name: 'Create an account' }).click();
@@ -67,7 +65,14 @@ test('landing, composer and account screens fit a narrow viewport', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  for (const path of ['/', '/new', '/auth', '/privacy']) {
+  for (const path of [
+    '/',
+    '/new',
+    '/auth',
+    '/reset-password',
+    '/privacy',
+    '/missing-page',
+  ]) {
     await page.goto(path);
     expect(
       await page.evaluate(

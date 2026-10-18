@@ -1,13 +1,7 @@
-import { useState, type FormEvent } from 'react';
-import {
-  ArrowLeft,
-  ArrowRight,
-  Check,
-  LockKeyhole,
-  RotateCcw,
-} from 'lucide-react';
+import { useEffect, useState, type FormEvent } from 'react';
+import { ArrowLeft, ArrowRight, Check, RotateCcw } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Alert, Mark, PageIntro } from '../components/ui';
+import { Alert, PageIntro } from '../components/ui';
 import { useAuth } from '../lib/auth';
 import { client, friendlyError, remindersAvailable } from '../lib/supabase';
 import {
@@ -75,6 +69,10 @@ export function Composer() {
   const [confirmationId, setConfirmationId] = useState(requestId);
   const { session } = useAuth();
   const navigate = useNavigate();
+  useEffect(() => {
+    if (review)
+      document.querySelector<HTMLElement>('.composer-heading h1')?.focus();
+  }, [review]);
   function renewId() {
     const id = crypto.randomUUID();
     setConfirmationId(id);
@@ -121,6 +119,9 @@ export function Composer() {
         fields[String(i.path[0])] = i.message;
       });
       setErrors(fields);
+      requestAnimationFrame(() => {
+        document.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+      });
       return;
     }
     setDraft(result.data);
@@ -162,33 +163,51 @@ export function Composer() {
         {errors[key]}
       </span>
     );
+  function draftDate(value: string) {
+    try {
+      return formatDate(localToISO(value), draft.timezone, true);
+    } catch {
+      return 'Choose a date and time';
+    }
+  }
   return (
     <section className="wrap composer-page">
       <Link className="back-link" to={session ? '/app' : '/'}>
         <ArrowLeft size={15} />{' '}
-        {session ? 'My commitments' : 'Back to the idea'}
+        {session ? 'My commitments' : 'About Terms Apply'}
       </Link>
       <div className="composer-heading">
-        <PageIntro
-          eyebrow="A PERSONAL AGREEMENT"
-          title={review ? 'Read your fine print.' : 'What’s the thing?'}
-        >
+        <PageIntro title={review ? 'Review your terms' : 'New commitment'}>
           <p>
             {review
-              ? 'All your terms, together. Change anything before you make it official.'
-              : 'One concrete thing. A real deadline. Terms you choose yourself.'}
+              ? 'Check the whole agreement before confirming.'
+              : 'Set the terms. You’ll review them before confirming.'}
           </p>
         </PageIntro>
-        <div className="step-indicator">
-          <span className={!review ? 'active' : 'complete'}>
-            {review ? <Check size={13} /> : '1'}
-          </span>
-          <span>Write</span>
-          <i />
-          <span className={review ? 'active' : ''}>2</span>
-          <span>Review</span>
-        </div>
+        <ol className="step-indicator" aria-label="Progress">
+          <li
+            className={!review ? 'active' : ''}
+            aria-current={!review ? 'step' : undefined}
+          >
+            <span>01</span> Write
+          </li>
+          <li
+            className={review ? 'active' : ''}
+            aria-current={review ? 'step' : undefined}
+          >
+            <span>02</span> Review
+          </li>
+        </ol>
       </div>
+      {!review && (
+        <button
+          type="button"
+          className="text-link example-link"
+          onClick={example}
+        >
+          Use the walking example <ArrowRight size={15} aria-hidden="true" />
+        </button>
+      )}
       <div className="composer-grid">
         <div>
           {error && <Alert>{error}</Alert>}
@@ -199,7 +218,8 @@ export function Composer() {
                 <div>
                   <label htmlFor="goal">What will you do?</label>
                   <p className="field-hint">
-                    Something you can finish, ideally in the next day or two.
+                    One task, ideally something you can finish in the next day
+                    or two.
                   </p>
                   <input
                     id="goal"
@@ -218,12 +238,9 @@ export function Composer() {
                 <span className="form-number">02</span>
                 <div>
                   <label htmlFor="done-means">What counts as done?</label>
-                  <p className="field-hint">
-                    Give future-you something specific to check against.
-                  </p>
                   <textarea
                     id="done-means"
-                    rows={3}
+                    rows={2}
                     value={draft.doneMeans}
                     onChange={(e) => change('doneMeans', e.target.value)}
                     maxLength={700}
@@ -241,9 +258,6 @@ export function Composer() {
                 <span className="form-number">03</span>
                 <div>
                   <label htmlFor="deadline">By when?</label>
-                  <p className="field-hint">
-                    A finish line, rather than a vague “soon.”
-                  </p>
                   <input
                     id="deadline"
                     type="datetime-local"
@@ -257,22 +271,20 @@ export function Composer() {
                   />
                   {fieldError('deadline')}
                   <span className="field-hint timezone">
-                    Times in {draft.timezone.replaceAll('_', ' ')}. Stored with
-                    the correct UTC offset.
+                    Times in {draft.timezone.replaceAll('_', ' ')}.
                   </span>
                 </div>
               </div>
               <div className="form-section pledge-section">
                 <span className="form-number">04</span>
                 <div>
-                  <label htmlFor="pledge">Your pledge, if missed.</label>
+                  <label htmlFor="pledge">Your pledge, if missed</label>
                   <p className="field-hint">
-                    Something meaningful, manageable, and additional to your
-                    usual obligations. No need to go overboard.
+                    Something manageable, beyond what you already need to do.
                   </p>
                   <textarea
                     id="pledge"
-                    rows={3}
+                    rows={2}
                     value={draft.pledge}
                     onChange={(e) => change('pledge', e.target.value)}
                     maxLength={700}
@@ -293,8 +305,8 @@ export function Composer() {
                     When can you report on your pledge?
                   </label>
                   <p className="field-hint">
-                    Leave time to do it. Two Netflix-free evenings need two
-                    evenings, for example.
+                    Leave enough time to carry it out. Two evenings without
+                    Netflix need two evenings.
                   </p>
                   <input
                     id="pledge-check"
@@ -318,12 +330,13 @@ export function Composer() {
                     setDraft(emptyDraft());
                     store(emptyDraft());
                     setErrors({});
+                    renewId();
                   }}
                 >
                   <RotateCcw size={14} /> Start over
                 </button>
                 <button className="button primary" type="submit">
-                  Review my terms <ArrowRight size={18} />
+                  Review terms <ArrowRight size={18} />
                 </button>
               </div>
             </form>
@@ -331,18 +344,17 @@ export function Composer() {
             <>
               <div className="agreement-sheet">
                 <div className="paper-top">
-                  <span>YOUR ORIGINAL TERMS</span>
-                  <Mark size={28} />
+                  <span>Your agreement</span>
+                  <span className="document-label">Review copy</span>
                 </div>
-                <p className="paper-prefix">I’m going to</p>
                 <h2>{draft.goal}</h2>
                 <dl className="terms-list">
                   <div>
-                    <dt>DONE MEANS</dt>
+                    <dt>Done means</dt>
                     <dd>{draft.doneMeans}</dd>
                   </div>
                   <div>
-                    <dt>BY WHEN</dt>
+                    <dt>Deadline</dt>
                     <dd>
                       {formatDate(
                         localToISO(draft.deadline),
@@ -352,11 +364,11 @@ export function Composer() {
                     </dd>
                   </div>
                   <div className="pledge-term">
-                    <dt>MY PLEDGE, IF MISSED</dt>
+                    <dt>Your pledge, if missed</dt>
                     <dd>{draft.pledge}</dd>
                   </div>
                   <div>
-                    <dt>PLEDGE CHECK-IN</dt>
+                    <dt>Pledge check-in</dt>
                     <dd>
                       {formatDate(
                         localToISO(draft.pledgeCheck),
@@ -367,8 +379,8 @@ export function Composer() {
                   </div>
                 </dl>
                 <p className="fine-print">
-                  All times in {draft.timezone}. Completing late triggers the
-                  pledge too.
+                  Times in {draft.timezone.replaceAll('_', ' ')}. Your pledge
+                  also applies if you finish late.
                 </p>
               </div>
               <div className="confirmation-block">
@@ -379,8 +391,8 @@ export function Composer() {
                     onChange={(e) => setAgreed(e.target.checked)}
                   />
                   <span>
-                    These are my terms. I understand the confirmed version stays
-                    in my record, and all outcomes are self-reported.
+                    I agree to these terms. The confirmed version stays in my
+                    record, and outcomes are self-reported.
                   </span>
                 </label>
                 <div className="form-actions">
@@ -389,9 +401,12 @@ export function Composer() {
                     onClick={() => {
                       setReview(false);
                       setAgreed(false);
+                      requestAnimationFrame(() =>
+                        document.getElementById('goal')?.focus(),
+                      );
                     }}
                   >
-                    <ArrowLeft size={15} /> Edit my terms
+                    <ArrowLeft size={15} /> Edit terms
                   </button>
                   {session ? (
                     <button
@@ -399,7 +414,7 @@ export function Composer() {
                       disabled={!agreed || busy}
                       onClick={confirm}
                     >
-                      {busy ? 'Confirming…' : 'Make it official'}
+                      {busy ? 'Confirming…' : 'Confirm commitment'}
                       <Check size={18} />
                     </button>
                   ) : (
@@ -427,36 +442,42 @@ export function Composer() {
         </div>
         <aside className="composer-aside">
           <div className="margin-note">
-            <Mark size={30} />
-            <h3>
-              Small is a<br />
-              <em>perfectly good start.</em>
-            </h3>
-            <p>
-              A 30-minute walk is easier to call done than “get my life
-              together.” Start there.
+            <p className="eyebrow">
+              {review ? 'Before you confirm' : 'Your draft'}
             </p>
-            {!review && (
-              <button type="button" className="text-link" onClick={example}>
-                Borrow the walking example <ArrowRight size={15} />
-              </button>
-            )}
+            <h2>{draft.goal || 'Your commitment'}</h2>
+            <dl className="draft-details">
+              <div>
+                <dt>Done means</dt>
+                <dd>{draft.doneMeans || 'Define what counts as done.'}</dd>
+              </div>
+              <div>
+                <dt>Deadline</dt>
+                <dd>{draftDate(draft.deadline)}</dd>
+              </div>
+              <div>
+                <dt>Your pledge, if missed</dt>
+                <dd>{draft.pledge || 'Choose your own pledge.'}</dd>
+              </div>
+              <div>
+                <dt>Pledge check-in</dt>
+                <dd>{draftDate(draft.pledgeCheck)}</dd>
+              </div>
+            </dl>
           </div>
           <div className="aside-facts">
             <p>
-              <LockKeyhole size={16} /> Private from other users.
+              The pledge is separate from the goal. Finishing late still means
+              the deadline was missed.
             </p>
             <p>
-              <Check size={16} /> Your pledge. Never assigned.
-            </p>
-            <p>
-              <Check size={16} /> No automatic charges or penalties.
+              Confirming does not charge money or take action on your behalf.
             </p>
           </div>
           <p className="fine-print">
             {remindersAvailable
-              ? 'Email reminders are optional. Turn them on in Account; nothing is sent without your opt-in.'
-              : 'Email reminders are not available yet. Keep your own reminder until the operator enables delivery.'}
+              ? 'Email reminders are optional. Turn them on in Account settings.'
+              : 'Email reminders aren’t available yet. Keep your own reminder for now.'}
           </p>
         </aside>
       </div>

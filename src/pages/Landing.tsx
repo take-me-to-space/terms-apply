@@ -1,192 +1,130 @@
-import {
-  ArrowDown,
-  ArrowRight,
-  Check,
-  CornerDownRight,
-  MoveUpRight,
-} from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { Link, Navigate } from 'react-router-dom';
-import { Mark } from '../components/ui';
 import { useAuth } from '../lib/auth';
+import { remindersAvailable } from '../lib/supabase';
+
 export function Landing() {
   const { session } = useAuth();
   if (session) return <Navigate to="/app" replace />;
   return (
-    <>
-      <section className="hero wrap">
+    <div className="wrap landing">
+      <section className="hero">
         <div className="hero-copy">
-          <p className="eyebrow">
-            <span className="tiny-dot" /> FOR THE THING YOU KEEP PUTTING OFF
-          </p>
+          <p className="intro-label">A private commitment, in writing.</p>
           <h1>
-            Make a deal.
+            Put a date
             <br />
-            <em>With yourself.</em>
+            on it.
           </h1>
           <p className="hero-description">
-            You know the thing. The walk. The application.
-            <br className="hide-small" /> The project with an impressive
-            collection of tomorrows.
-          </p>
-          <p className="hero-description">
-            Give it a deadline. Set your own terms.
-            <br />
-            Then show up for the check-in.
+            Choose what you’ll do, when you’ll do it, and your pledge if you
+            miss it.
           </p>
           <Link className="button primary" to="/new">
-            Put it in writing <ArrowRight size={19} />
+            Make a commitment <ArrowRight size={19} aria-hidden="true" />
           </Link>
-          <p className="under-button">Your goal. Your pledge. Your word.</p>
-          <a className="text-link hero-down" href="#the-idea">
-            <ArrowDown size={15} /> A small agreement. Here’s the idea.
-          </a>
-        </div>
-        <div
-          className="hero-art"
-          aria-label="Example agreement: walk for 30 minutes before 8 pm; give up Netflix for two evenings if missed"
-        >
-          <div className="art-caption">
-            <span>A NOTE TO TOMORROW-YOU</span>
-            <span>NO. 001 ↘</span>
-          </div>
-          <div className="example-paper">
-            <div className="paper-top">
-              <span>THE PERSONAL AGREEMENT</span>
-              <Mark size={32} />
-            </div>
-            <p className="paper-prefix">I’m going to</p>
-            <h2>
-              Take the walk.
-              <br />
-              All 30 minutes.
-            </h2>
-            <div className="example-rule">
-              <span>BY WHEN</span>
-              <strong>Tomorrow, before 8 pm.</strong>
-            </div>
-            <div className="example-rule">
-              <span>DONE MEANS</span>
-              <p>
-                30 minutes walking outside.
-                <br />
-                Thinking about it doesn’t count.
-              </p>
-            </div>
-            <div className="example-pledge">
-              <CornerDownRight size={19} />
-              <div>
-                <span>MY PLEDGE, IF MISSED</span>
-                <p>
-                  No Netflix for the next
-                  <br />
-                  two evenings.
-                </p>
-              </div>
-            </div>
-            <div className="paper-signature">
-              <span>Signed, me.</span>
-              <span className="hand-check">
-                <Check size={32} strokeWidth={1.8} />
-              </span>
-            </div>
-          </div>
-          <div className="honesty-seal">
-            <Mark size={29} />
-            <span>
-              GOOD ON
-              <br />
-              YOUR WORD
-            </span>
-          </div>
-          <div className="art-footnote">
-            <span>Not legally binding.</span>
-            <span>A little personally binding.</span>
-          </div>
-        </div>
-      </section>
-      <div className="ticker" aria-hidden="true">
-        <span>LESS “I SHOULD.”</span>
-        <Mark size={21} />
-        <span>MORE “I DID.”</span>
-        <Mark size={21} />
-        <span>ON YOUR OWN TERMS.</span>
-        <Mark size={21} />
-        <span>LESS “I SHOULD.”</span>
-        <Mark size={21} />
-        <span>MORE “I DID.”</span>
-      </div>
-      <section className="how-section wrap" id="the-idea">
-        <div className="section-heading">
-          <p className="eyebrow">NOT ANOTHER TO-DO LIST</p>
-          <h2>
-            A bit of intention.
-            <br />
-            <em>A little fine print.</em>
-          </h2>
-          <p>
-            No streak to protect. No audience to impress.
-            <br />
-            Just one clear thing, and what you’ll do about it.
+          <p className="hero-small">
+            {remindersAvailable
+              ? 'Free to use. Email reminders are optional.'
+              : 'Free to use. Choose your own terms.'}
           </p>
         </div>
-        <div className="steps-grid">
+        <figure className="hero-figure">
+          <img
+            className="hero-image"
+            src="/images/walk-1280.webp"
+            srcSet="/images/walk-768.webp 768w, /images/walk-1280.webp 1280w"
+            sizes="(max-width: 680px) calc(100vw - 40px), (max-width: 950px) 48vw, 560px"
+            width={1280}
+            height={854}
+            fetchPriority="high"
+            alt="A canvas walking shoe resting on a stack of calendar pages, against a red background."
+          />
+          <figcaption>
+            <span className="mono">THE EXAMPLE / 01</span>
+            <span>A 30-minute walk. Tomorrow, before 8 pm.</span>
+          </figcaption>
+        </figure>
+      </section>
+      <section className="landing-rule">
+        <h2>We’ll ask how it went.</h2>
+        <p>
+          {remindersAvailable
+            ? 'Opt in to email reminders and check-ins. You report the outcome; we keep the original terms and your answers.'
+            : 'You report the outcome; we keep the original terms and your answers. Email reminders aren’t available yet.'}
+        </p>
+      </section>
+      <section
+        className="how-section"
+        id="the-idea"
+        aria-labelledby="how-title"
+      >
+        <div className="how-heading">
+          <p className="eyebrow">How it works</p>
+          <h2 id="how-title">The terms are yours.</h2>
+          <p>
+            Your pledge should be manageable and additional to your usual
+            obligations.
+          </p>
+        </div>
+        <ol className="how-steps">
           {[
             [
               '01',
-              'Name the thing.',
-              'Make it small enough to finish and clear enough to call done. “Walk for 30 minutes” beats “be healthier.”',
+              'Choose something specific.',
+              'A task you can finish, a clear definition of done, and a deadline.',
             ],
             [
               '02',
-              'Make your terms.',
-              'Choose a deadline and a pledge if you miss it. Something meaningful and manageable. Always your choice.',
+              'Decide your pledge.',
+              'Choose what you’ll do or give up if you miss the deadline, and when you can report on it.',
             ],
             [
               '03',
-              'Tell it straight.',
-              'Come back and say what happened. Finished late? That counts as late. Pledge honoured? That gets its own answer.',
+              'Record what happened.',
+              'On time, late, or missed. Late and missed goals get a separate pledge check-in. An unanswered check-in stays unreported.',
             ],
-          ].map(([n, title, text]) => (
-            <article className="step" key={n}>
-              <span className="step-number">
-                {n} <MoveUpRight size={22} />
+          ].map(([number, title, text]) => (
+            <li key={number}>
+              <span className="mono" aria-hidden="true">
+                {number}
               </span>
-              <h3>{title}</h3>
-              <p>{text}</p>
-            </article>
+              <div>
+                <h3>{title}</h3>
+                <p>{text}</p>
+              </div>
+            </li>
           ))}
-        </div>
+        </ol>
       </section>
-      <section className="honesty-section wrap">
-        <div className="big-asterisk">
-          <Mark size={120} />
-        </div>
+      <section className="walking-example" aria-labelledby="example-title">
         <div>
-          <p className="eyebrow">THE ACTUAL FINE PRINT</p>
-          <h2>We take your word for it.</h2>
-          <p>
-            No proof uploads. No automatic penalties. No money taken when you
-            miss a goal. We keep the agreement, bring it back for a check-in,
-            and record what you tell us.
-          </p>
-          <p>Some days, you’ll miss. The next honest answer still matters.</p>
-          <Link className="text-link" to="/new">
-            Make your first agreement <ArrowRight size={17} />
-          </Link>
+          <p className="eyebrow">An example</p>
+          <h2 id="example-title">One walk. Your own terms.</h2>
         </div>
+        <dl className="example-terms">
+          <div>
+            <dt>Goal</dt>
+            <dd>Walk for 30 minutes tomorrow before 8 pm.</dd>
+          </div>
+          <div>
+            <dt>Done means</dt>
+            <dd>Spend 30 minutes walking outside.</dd>
+          </div>
+          <div>
+            <dt>If missed</dt>
+            <dd>Give up Netflix for the next two evenings.</dd>
+          </div>
+          <div>
+            <dt>Pledge check-in</dt>
+            <dd>After those two evenings have passed.</dd>
+          </div>
+        </dl>
+        <p className="fine-print">
+          You choose the pledge. The app records your answers; it doesn’t verify
+          your actions or enforce consequences.
+        </p>
       </section>
-      <section className="last-word wrap">
-        <p className="eyebrow">A GOOD TIME TO START</p>
-        <h2>
-          Before this becomes
-          <br />
-          <em>another open tab.</em>
-        </h2>
-        <Link className="button primary" to="/new">
-          Put it in writing <ArrowRight size={19} />
-        </Link>
-        <p>Free to use. No card. No automatic consequences.</p>
-      </section>
-    </>
+    </div>
   );
 }

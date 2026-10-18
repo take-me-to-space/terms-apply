@@ -11,7 +11,7 @@ export type Delivery = {
   timezone: string;
 };
 export function reminderEmail(delivery: Delivery, origin: string) {
-  const url = `${origin}/commitments/${delivery.commitment_id}`;
+  const url = `${origin}/commitments/${encodeURIComponent(delivery.commitment_id)}`;
   const settings = `${origin}/settings`;
   const time = new Intl.DateTimeFormat('en', {
     dateStyle: 'medium',
@@ -26,22 +26,38 @@ export function reminderEmail(delivery: Delivery, origin: string) {
   );
   const messages = {
     before_deadline: {
-      subject: 'A little time left. Your terms still apply.',
+      subject: 'Your commitment is due soon',
+      heading: 'A reminder before your deadline',
       text: `A reminder about your agreement: the goal deadline is ${time} (${delivery.timezone}). Already finished? You can record it now.`,
     },
     goal_checkin: {
       subject: 'What happened?',
+      heading: 'What happened?',
       text: `Your goal deadline was ${time} (${delivery.timezone}). Completed on time, completed late, or missed? Tell us when you actually finished. A late report can still describe an on-time completion.`,
     },
     pledge_checkin: {
-      subject: 'And your side of the deal?',
-      text: `Your pledge check-in was set for ${time} (${delivery.timezone}). Did you honour it? Honoured, not honoured, and not yet are separate answers. We take your word for it.`,
+      subject: 'Time for your pledge check-in',
+      heading: 'Did you honour your pledge?',
+      text: `Your pledge check-in was set for ${time} (${delivery.timezone}). Record honoured, not honoured, or not yet. “Not yet” leaves the pledge unresolved so you can answer later.`,
     },
   };
   const m = messages[delivery.kind];
+  const escape = (value: string) =>
+    value.replace(
+      /[&<>"']/g,
+      (character) =>
+        ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;',
+        })[character]!,
+    );
   return {
     subject: m.subject,
-    text: `${m.text}\n\nOpen your private agreement: ${url}\n\nUse the app to record your answer; email replies are not recorded. An unanswered check-in stays unreported.\n\nYou opted in to Terms Apply reminders. Turn them off: ${settings}\n\nTerms Apply — Your goal. Your pledge. Your word.`,
+    text: `${m.text}\n\nOpen your commitment: ${url}\n\nRecord your answer in the app. Email replies are not recorded. An unanswered check-in stays unreported.\n\nYou opted in to Terms Apply reminders. Turn them off: ${settings}\n\nTerms Apply`,
+    html: `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escape(m.subject)}</title></head><body style="margin:0;background:#faf9f6;color:#242622;font-family:Arial,Helvetica,sans-serif"><table role="presentation" style="width:100%;border-collapse:collapse"><tr><td style="padding:32px 20px"><table role="presentation" style="width:100%;max-width:520px;margin:auto;border-collapse:collapse"><tr><td style="padding-bottom:22px;border-bottom:2px solid #b63024;font-size:26px;font-weight:bold;letter-spacing:-1px">terms apply<span style="color:#b63024">.</span></td></tr><tr><td style="padding-top:28px"><h1 style="font-size:26px;line-height:1.2;margin:0 0 18px">${escape(m.heading)}</h1><p style="font-size:16px;line-height:1.65;margin:0 0 24px">${escape(m.text)}</p><a href="${escape(url)}" style="display:inline-block;padding:13px 18px;background:#242622;color:#faf9f6;text-decoration:none;font-size:15px;font-weight:bold">Open your commitment →</a><p style="font-size:13px;line-height:1.65;color:#64655d;margin:24px 0 28px">Record your answer in the app. Email replies are not recorded. An unanswered check-in stays unreported.</p></td></tr><tr><td style="border-top:1px solid #d6d5cc;padding-top:18px;font-size:12px;line-height:1.7;color:#64655d">You opted in to Terms Apply reminders.<br><a href="${escape(settings)}" style="color:#64655d">Manage email reminders</a></td></tr></table></td></tr></table></body></html>`,
   };
 }
 

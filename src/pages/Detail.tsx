@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { ArrowLeft, Check, Clock3, Flag, LockKeyhole } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
-import { Alert, Dialog, Loading, Mark } from '../components/ui';
+import { Alert, Dialog, Loading } from '../components/ui';
 import { client, friendlyError } from '../lib/supabase';
 import { normalizeCommitment } from '../lib/records';
 import {
   formatDate,
+  deviceTimezone,
   localInput,
   localToISO,
   localTimeChoices,
@@ -124,7 +125,7 @@ export function Detail() {
   if (!c)
     return (
       <section className="wrap narrow">
-        <h1>Nothing to see here.</h1>
+        <h1>Commitment not found</h1>
         <p>This agreement doesn’t exist, or it belongs to another account.</p>
         <Link to="/app">Back to your commitments</Link>
       </section>
@@ -184,7 +185,7 @@ export function Detail() {
         <ArrowLeft size={15} /> My commitments
       </Link>
       <div className="detail-title">
-        <p className="eyebrow">YOUR PERSONAL AGREEMENT</p>
+        <p className="eyebrow">Your commitment</p>
         <div className={`badge ${s.tone}`}>
           <span className="tiny-dot" />
           {s.label}
@@ -196,42 +197,37 @@ export function Detail() {
         </p>
       </div>
       <div className="detail-grid">
-        <div>
+        <div className="detail-main">
           <div className="agreement-sheet">
             <div className="paper-top">
-              <span>THE ORIGINAL TERMS</span>
-              <Mark size={30} />
+              <span>Original terms</span>
+              <LockKeyhole size={16} aria-hidden="true" />
             </div>
             <dl className="terms-list">
               <div>
-                <dt>I’M GOING TO</dt>
-                <dd className="goal-term">{c.goal}</dd>
-              </div>
-              <div>
-                <dt>DONE MEANS</dt>
+                <dt>Done means</dt>
                 <dd>{c.done_means}</dd>
               </div>
               <div>
-                <dt>BY WHEN</dt>
+                <dt>Deadline</dt>
                 <dd>{formatDate(c.deadline_at, c.timezone, true)}</dd>
               </div>
               <div className="pledge-term">
-                <dt>MY PLEDGE, IF MISSED</dt>
+                <dt>Your pledge, if missed</dt>
                 <dd>{c.pledge}</dd>
               </div>
               <div>
-                <dt>PLEDGE CHECK-IN</dt>
+                <dt>Pledge check-in</dt>
                 <dd>{formatDate(c.pledge_check_at, c.timezone, true)}</dd>
               </div>
             </dl>
             <p className="fine-print">
-              <LockKeyhole size={13} /> Confirmed terms · {c.timezone} · Late
-              completion also triggers your pledge.
+              Times in {c.timezone.replaceAll('_', ' ')}. Your pledge also
+              applies if you finish late.
             </p>
           </div>
           <section className="history">
-            <p className="eyebrow">THE RECORD</p>
-            <h2>As you told it.</h2>
+            <h2>History</h2>
             <ol>
               {events.map((e) => (
                 <li key={e.id}>
@@ -255,30 +251,32 @@ export function Detail() {
           </section>
         </div>
         <aside className="next-action">
-          <p className="eyebrow">UP NEXT</p>
+          <p className="eyebrow">Next action</p>
           {withdrawn ? (
             <>
               <Flag size={28} />
-              <h2>Off the table.</h2>
+              <h2>Commitment withdrawn</h2>
               <p>
                 You withdrew this agreement. The terms remain part of your
                 record.
               </p>
               <Link className="button secondary full" to="/new">
-                Start a new agreement
+                New commitment
               </Link>
             </>
           ) : !goal ? (
             <>
               <Clock3 size={28} />
-              <h2>
-                {pastDeadline ? 'What happened?' : 'The ball’s in your court.'}
-              </h2>
+              <h2>{pastDeadline ? 'What happened?' : 'Ready to report?'}</h2>
               <p>
                 {pastDeadline
-                  ? 'The deadline has passed. That doesn’t tell us what happened—you do.'
-                  : 'Already done? You can record it now. Otherwise, you have until your deadline.'}
+                  ? 'The deadline has passed. Tell us whether you finished, and when.'
+                  : 'If you’ve finished, you can record your completion now.'}
               </p>
+              <div className="action-deadline">
+                <span>Deadline</span>
+                <strong>{formatDate(c.deadline_at)}</strong>
+              </div>
               <button
                 className="button primary full"
                 onClick={() => open('goal')}
@@ -300,11 +298,7 @@ export function Detail() {
           ) : needsPledge ? (
             <>
               <Flag size={28} />
-              <h2>
-                {pledgeDue
-                  ? 'Your pledge gets its own answer.'
-                  : 'Now, your side of the deal.'}
-              </h2>
+              <h2>{pledgeDue ? 'Pledge check-in' : 'Your pledge is next'}</h2>
               <p>
                 {goal.outcome === 'late'
                   ? 'You finished the goal after the deadline, so your pledge still applies.'
@@ -320,7 +314,7 @@ export function Detail() {
               </button>
               <p className="fine-print">
                 {pledgeDue
-                  ? 'No report is still no report. We won’t infer an outcome.'
+                  ? 'Without an answer, your pledge stays unresolved.'
                   : 'You can record a final answer once the pledge check-in time arrives.'}
               </p>
             </>
@@ -329,16 +323,16 @@ export function Detail() {
               <Check size={30} />
               <h2>
                 {goal.outcome === 'on_time'
-                  ? 'You did the thing.'
-                  : 'An honest record.'}
+                  ? 'Completed on time'
+                  : 'Reports saved'}
               </h2>
               <p>
                 {goal.outcome === 'on_time'
-                  ? 'On time, by your own account. No pledge is due. Keep the credit, and the record.'
+                  ? 'You reported finishing before the deadline. No pledge is due.'
                   : 'The goal and the pledge each have their own answer. Both are saved in your history.'}
               </p>
               <Link className="button secondary full" to="/new">
-                Make another agreement
+                New commitment
               </Link>
             </>
           )}
@@ -441,8 +435,8 @@ export function Detail() {
                       </label>
                     )}
                     <p className="field-hint">
-                      Use your current local time. The server compares this with
-                      the original deadline.{' '}
+                      Times in {deviceTimezone().replaceAll('_', ' ')}. Your
+                      completion time determines whether the deadline was met.{' '}
                       {claimedTime && (
                         <strong>
                           {claimedTime <= new Date(c.deadline_at)
@@ -497,7 +491,7 @@ export function Detail() {
               </p>
             )}
             <label>
-              {modal === 'withdraw' ? 'Reason' : 'A note'}, if you want
+              {modal === 'withdraw' ? 'Reason (optional)' : 'Note (optional)'}
               <textarea
                 rows={3}
                 maxLength={1200}
@@ -512,8 +506,8 @@ export function Detail() {
               {busy
                 ? 'Saving…'
                 : modal === 'withdraw'
-                  ? 'Withdraw & keep the record'
-                  : 'Save my answer'}
+                  ? 'Withdraw commitment'
+                  : 'Save report'}
             </button>
           </form>
         </Dialog>

@@ -115,6 +115,9 @@ describe('scheduled email boundary', () => {
     expect(JSON.parse(fetcher.mock.calls[0][1].body).text).toContain(
       '/settings',
     );
+    expect(JSON.parse(fetcher.mock.calls[0][1].body).html).toContain(
+      'Manage email reminders',
+    );
   });
   it('keeps rate-limit errors retryable without logging the provider response body', async () => {
     vi.stubGlobal(

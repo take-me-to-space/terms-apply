@@ -130,14 +130,14 @@ export function Settings() {
   }
   return (
     <section className="wrap settings-page">
-      <PageIntro eyebrow="YOUR ACCOUNT" title="On your terms.">
-        <p>Your records, your reminders, your way out.</p>
+      <PageIntro title="Account settings">
+        <p>Manage reminders, download your records, or delete your account.</p>
       </PageIntro>
       {error && <Alert>{error}</Alert>}
       {message && <Alert success>{message}</Alert>}
       <section className="settings-section">
         <div>
-          <p className="eyebrow">SIGNED IN AS</p>
+          <p className="eyebrow">Signed in as</p>
           <h2 className="account-email">{session?.user.email}</h2>
           <p>
             Sign out on shared devices. Your saved agreements stay with your
@@ -151,15 +151,14 @@ export function Settings() {
       <section className="settings-section">
         <div>
           <Bell size={24} />
-          <h2>A timely nudge.</h2>
+          <h2>Email reminders</h2>
           <p>
             One reminder about two hours before the deadline, a goal check-in
-            afterwards, and a pledge check-in when relevant. No repeated
-            chasing.
+            afterwards, and a pledge check-in when relevant.
           </p>
           <p className="field-hint">
             {remindersAvailable
-              ? 'Email delivery can be delayed or fail. The agreement stays yours either way.'
+              ? 'Email delivery can be delayed or fail. Your deadline remains the same.'
               : 'Delivery is not available yet. You can opt out below if you previously enabled reminders. Please keep your own reminder for now.'}
           </p>
         </div>
@@ -178,7 +177,7 @@ export function Settings() {
       <section className="settings-section">
         <div>
           <Download size={24} />
-          <h2>Keep your own copy.</h2>
+          <h2>Download your records</h2>
           <p>
             Download your agreements, reports, timestamps, and notes as a JSON
             file. Store it somewhere private.
@@ -195,7 +194,7 @@ export function Settings() {
       <section className="settings-section delete-section">
         <div>
           <Trash2 size={24} />
-          <h2>Leave no loose ends.</h2>
+          <h2>Delete your account</h2>
           <p>
             Delete your account and its agreements, reports, preferences, and
             pending reminders. This is permanent. Download your record first if

@@ -78,42 +78,47 @@ export function Auth() {
   return (
     <section className="auth-layout wrap">
       <div className="auth-aside">
-        <p className="eyebrow">SOME THINGS ARE WORTH WRITING DOWN</p>
+        <p className="eyebrow">Terms Apply</p>
         <h2>
-          Your word.
+          Your commitments,
           <br />
-          <em>In one place.</em>
+          in one place.
         </h2>
         <p>
-          Private commitments. Honest check-ins.
-          <br />A record that sticks around.
+          Keep your original terms and reports together. Sign in to access them
+          on your other devices.
         </p>
         <div className="aside-note">
-          <span>NOTE TO SELF</span>
-          <p>
-            “I’ll do it tomorrow”
-            <br />
-            has had a pretty good run.
-          </p>
+          <span className="eyebrow">An example</span>
+          <h3>Walk for 30 minutes.</h3>
+          <dl className="auth-example">
+            <div>
+              <dt>Deadline</dt>
+              <dd>Tomorrow, before 8 pm.</dd>
+            </div>
+            <div>
+              <dt>If missed</dt>
+              <dd>No Netflix for the next two evenings.</dd>
+            </div>
+          </dl>
         </div>
       </div>
       <div className="auth-card">
         <PageIntro
-          eyebrow="TERMS APPLY"
           title={
             mode === 'signup'
-              ? 'Make yourself a deal.'
+              ? 'Create an account'
               : mode === 'recover'
-                ? 'Lost the password?'
-                : 'Good to have you back.'
+                ? 'Reset your password'
+                : 'Sign in'
           }
         >
           <p>
             {mode === 'signup'
-              ? 'An account keeps your agreements safe and available on your other devices.'
+              ? 'Save your commitments and access them on any device.'
               : mode === 'recover'
                 ? 'We’ll email you a link to set a new one.'
-                : 'Your agreements are right where you left them.'}
+                : 'Access your commitments and reports.'}
           </p>
         </PageIntro>
         {!configured && (
@@ -139,7 +144,7 @@ export function Auth() {
               onChange={(e) => setEmail(e.target.value)}
               required
               maxLength={254}
-              placeholder="you@somewhere.com"
+              placeholder="you@example.com"
             />
           </label>
           {mode !== 'recover' && (
@@ -184,7 +189,7 @@ export function Auth() {
             disabled={busy || !configured}
           >
             {busy
-              ? 'One moment…'
+              ? 'Please wait…'
               : mode === 'signup'
                 ? 'Create account'
                 : mode === 'recover'
@@ -196,7 +201,7 @@ export function Auth() {
         <p className="auth-switch">
           {mode === 'signin' ? (
             <>
-              New here?{' '}
+              No account yet?{' '}
               <button
                 className="text-link"
                 onClick={() => changeMode('signup')}
@@ -247,7 +252,9 @@ export function ResetPassword() {
   }
   return (
     <section className="narrow wrap">
-      <PageIntro eyebrow="ACCOUNT RECOVERY" title="A fresh password." />
+      <PageIntro title="Set a new password">
+        <p>Use at least 12 characters.</p>
+      </PageIntro>
       <div className="panel">
         {error && <Alert>{error}</Alert>}
         {done ? (

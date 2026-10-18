@@ -90,6 +90,22 @@ describe('private reminder copy', () => {
     expect(mail.text).toContain('https://app.example.com/commitments/123');
     expect(mail.text).toContain('https://app.example.com/settings');
     expect(mail.text).not.toContain(d.recipient);
+    expect(mail.html).toContain('https://app.example.com/commitments/123');
+    expect(mail.html).toContain('https://app.example.com/settings');
+    expect(mail.html).not.toContain(d.recipient);
+  });
+  it('encodes the agreement ID in links in both formats', () => {
+    const mail = reminderEmail(
+      { ...d, commitment_id: '\"><script>alert(1)</script>' },
+      'https://app.example.com',
+    );
+    expect(mail.text).toContain(
+      encodeURIComponent('\"><script>alert(1)</script>'),
+    );
+    expect(mail.html).not.toContain('<script>');
+    expect(mail.html).toContain(
+      encodeURIComponent('\"><script>alert(1)</script>'),
+    );
   });
   it('says a late report can describe an on-time completion', () => {
     expect(

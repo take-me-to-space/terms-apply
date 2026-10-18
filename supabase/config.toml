@@ -36,6 +36,12 @@ enable_confirmations = true
 max_frequency = "1s"
 [auth.rate_limit]
 email_sent = 100
+[auth.email.template.confirmation]
+subject = "Confirm your email — Terms Apply"
+content_path = "./supabase/templates/confirmation.html"
+[auth.email.template.recovery]
+subject = "Reset your password — Terms Apply"
+content_path = "./supabase/templates/recovery.html"
 [edge_runtime]
 enabled = false
 [analytics]

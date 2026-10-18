@@ -13,6 +13,46 @@ test.skip(
   'Requires real local Supabase auth/database/mail service. Run npm run test:services.',
 );
 
+const captured = new Set<string>();
+async function captureResponsive(page: Page, name: string) {
+  if (!process.env.CAPTURE_DESIGN || captured.has(name)) return;
+  captured.add(name);
+  await page.locator('main h1').first().waitFor({ state: 'visible' });
+  await page.locator('.loading').waitFor({ state: 'hidden' });
+  const original = page.viewportSize();
+  for (const [device, width, height] of [
+    ['desktop', 1440, 1000],
+    ['mobile', 390, 844],
+  ] as const) {
+    await page.setViewportSize({ width, height });
+    await page.evaluate(() => document.fonts.ready);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+      `${name}/${device} must fit the viewport`,
+    ).toBe(true);
+    const accessibility = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+      .analyze();
+    expect(accessibility.violations, `${name}/${device} accessibility`).toEqual(
+      [],
+    );
+    await page.screenshot({
+      path: test.info().outputPath(`${name}-${device}.png`),
+      fullPage: true,
+    });
+  }
+  await page.setViewportSize({ width: 320, height: 800 });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+    `${name}/320px must fit the viewport`,
+  ).toBe(true);
+  if (original) await page.setViewportSize(original);
+}
+
 async function emailLink(
   request: APIRequestContext,
   email: string,
@@ -46,12 +86,12 @@ async function emailLink(
 }
 async function makeAgreement(page: Page) {
   await page.goto('/new');
-  await page
-    .getByRole('button', { name: 'Borrow the walking example' })
-    .click();
-  await page.getByRole('button', { name: 'Review my terms' }).click();
+  await page.getByRole('button', { name: 'Use the walking example' }).click();
+  await captureResponsive(page, 'composer');
+  await page.getByRole('button', { name: 'Review terms' }).click();
+  await captureResponsive(page, 'review');
   await page.getByRole('checkbox').check();
-  await page.getByRole('button', { name: 'Make it official' }).click();
+  await page.getByRole('button', { name: 'Confirm commitment' }).click();
   await expect(page).toHaveURL(/\/commitments\/[\w-]+$/);
   return page.url().split('/').pop()!;
 }
@@ -60,7 +100,7 @@ test('real signup email, confirmation, persistence, isolation, check-ins, recove
   request,
   browser,
 }) => {
-  test.setTimeout(120_000);
+  test.setTimeout(240_000);
   const email = `terms-${randomUUID()}@example.com`;
   const password = `Local-test-${randomUUID()}!`;
   const admin = createClient(
@@ -71,7 +111,10 @@ test('real signup email, confirmation, persistence, isolation, check-ins, recove
   let userId: string | undefined;
   let otherId: string | undefined;
   try {
+    await page.goto('/');
+    await captureResponsive(page, 'landing');
     await page.goto('/auth?mode=signup');
+    await captureResponsive(page, 'signup');
     await page.getByLabel('Email address').fill(email);
     await page.getByLabel('Password', { exact: true }).fill(password);
     await page
@@ -81,11 +124,13 @@ test('real signup email, confirmation, persistence, isolation, check-ins, recove
     const link = await emailLink(request, email, /confirm/i);
     await page.goto(link);
     await expect(page).toHaveURL(/\/app$/);
+    await captureResponsive(page, 'dashboard-empty');
     const users = await admin.auth.admin.listUsers();
     userId = users.data.users.find((u) => u.email === email)?.id;
     expect(userId).toBeTruthy();
     const id = await makeAgreement(page);
     await page.reload();
+    await captureResponsive(page, 'active-detail');
     await expect(
       page.getByRole('heading', { name: 'Walk for 30 minutes', exact: true }),
     ).toBeVisible();
@@ -112,6 +157,7 @@ test('real signup email, confirmation, persistence, isolation, check-ins, recove
     });
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.getByRole('button', { name: 'I’ve completed it' }).click();
+    await captureResponsive(page, 'goal-checkin');
     expect(
       (
         await new AxeBuilder({ page })
@@ -119,11 +165,13 @@ test('real signup email, confirmation, persistence, isolation, check-ins, recove
           .analyze()
       ).violations,
     ).toEqual([]);
-    await page.getByRole('button', { name: 'Save my answer' }).click();
+    await page.getByRole('button', { name: 'Save report' }).click();
     await expect(page.locator('.badge')).toContainText('Completed on time');
     await expect(
-      page.getByRole('heading', { name: 'You did the thing.' }),
+      page.getByRole('heading', { name: 'Completed on time', level: 2 }),
     ).toBeVisible();
+
+    await captureResponsive(page, 'completed-detail');
 
     // A new browser has no shared storage: signed-in records persist across devices.
     const context = await browser.newContext();
@@ -135,10 +183,11 @@ test('real signup email, confirmation, persistence, isolation, check-ins, recove
       .getByRole('button', { name: 'Sign in', exact: true })
       .click();
     await expect(otherPage).toHaveURL(/\/app$/);
-    await otherPage.getByRole('button', { name: 'The record' }).click();
+    await otherPage.getByRole('button', { name: 'History' }).click();
     await expect(
       otherPage.getByRole('heading', { name: 'Walk for 30 minutes' }),
     ).toBeVisible();
+    await captureResponsive(otherPage, 'dashboard-history');
     await context.close();
 
     const otherEmail = `terms-${randomUUID()}@example.com`;
@@ -169,10 +218,9 @@ test('real signup email, confirmation, persistence, isolation, check-ins, recove
     await page
       .getByRole('button', { name: 'Withdraw this commitment' })
       .click();
-    await page.getByLabel('Reason, if you want').fill('Plans changed.');
-    await page
-      .getByRole('button', { name: 'Withdraw & keep the record' })
-      .click();
+    await captureResponsive(page, 'withdrawal');
+    await page.getByLabel('Reason (optional)').fill('Plans changed.');
+    await page.getByRole('button', { name: 'Withdraw commitment' }).click();
     await expect(page.locator('.badge')).toContainText('Withdrawn');
     expect(
       (
@@ -203,11 +251,14 @@ test('real signup email, confirmation, persistence, isolation, check-ins, recove
       { stdio: 'pipe' },
     );
     await page.reload();
+    await captureResponsive(page, 'active-detail');
     await page.getByRole('button', { name: 'Report the outcome' }).click();
-    await page.getByRole('button', { name: 'Save my answer' }).click();
+    await page.getByRole('button', { name: 'Save report' }).click();
     await expect(page.locator('.badge')).toContainText('Completed late');
+    await captureResponsive(page, 'late-detail');
     await page.getByRole('button', { name: 'Report on my pledge' }).click();
-    await page.getByRole('button', { name: 'Save my answer' }).click();
+    await captureResponsive(page, 'pledge-checkin');
+    await page.getByRole('button', { name: 'Save report' }).click();
     await expect(page.locator('.history')).toContainText('Pledge: not yet');
     execFileSync(
       'docker',
@@ -225,12 +276,14 @@ test('real signup email, confirmation, persistence, isolation, check-ins, recove
       { stdio: 'pipe' },
     );
     await page.getByRole('button', { name: 'Report on my pledge' }).click();
+    await captureResponsive(page, 'pledge-checkin');
     await page.getByRole('radio', { name: 'Honoured', exact: true }).check();
-    await page.getByRole('button', { name: 'Save my answer' }).click();
+    await page.getByRole('button', { name: 'Save report' }).click();
     await expect(page.locator('.badge')).toContainText('Pledge honoured');
     await expect(page.locator('.history')).toContainText('Pledge: not yet');
 
     await page.goto('/settings');
+    await captureResponsive(page, 'settings');
     expect(
       (
         await new AxeBuilder({ page })
@@ -262,6 +315,7 @@ test('real signup email, confirmation, persistence, isolation, check-ins, recove
     await expect(page).toHaveURL('http://127.0.0.1:5174/');
     await page.goto('/auth');
     await page.getByRole('button', { name: 'Forgot your password?' }).click();
+    await captureResponsive(page, 'recovery');
     await page.getByLabel('Email address').fill(email);
     await page.getByRole('button', { name: 'Send reset link' }).click();
     await expect(page.getByRole('status')).toContainText(
@@ -272,15 +326,18 @@ test('real signup email, confirmation, persistence, isolation, check-ins, recove
     await expect(
       page.getByLabel('New password', { exact: true }),
     ).toBeVisible();
+    await captureResponsive(page, 'reset-password');
     const nextPassword = `New-local-${randomUUID()}!`;
     await page.getByLabel('New password', { exact: true }).fill(nextPassword);
     await page.getByLabel('Repeat new password').fill(nextPassword);
     await page.getByRole('button', { name: 'Save new password' }).click();
     await expect(page.getByRole('status')).toContainText('Password updated');
     await page.goto('/settings');
+    await captureResponsive(page, 'settings');
     await page
       .getByRole('button', { name: 'Delete my account', exact: true })
       .click();
+    await captureResponsive(page, 'deletion');
     await page.getByLabel('Your password').fill(nextPassword);
     await page.getByLabel('Type DELETE to confirm').fill('DELETE');
     await page

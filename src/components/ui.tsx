@@ -1,11 +1,8 @@
-import { ArrowRight, Asterisk, LoaderCircle } from 'lucide-react';
+import { ArrowRight, LoaderCircle } from 'lucide-react';
 import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 
-export function Mark({ size = 25 }: { size?: number }) {
-  return <Asterisk size={size} strokeWidth={3} aria-hidden="true" />;
-}
 export function Header() {
   const { session } = useAuth();
   const { pathname } = useLocation();
@@ -17,7 +14,9 @@ export function Header() {
         aria-label="Terms Apply home"
       >
         terms apply
-        <Mark />
+        <span className="brand-period" aria-hidden="true">
+          .
+        </span>
       </Link>
       <nav aria-label="Main navigation">
         {session ? (
@@ -25,18 +24,25 @@ export function Header() {
             <Link
               className={pathname === '/app' ? 'nav-link current' : 'nav-link'}
               to="/app"
+              aria-current={pathname === '/app' ? 'page' : undefined}
             >
               <span className="nav-long">My commitments</span>
-              <span className="nav-short">My terms</span>
+              <span className="nav-short">Commitments</span>
             </Link>
-            <Link className="nav-link" to="/settings">
+            <Link
+              className={
+                pathname === '/settings' ? 'nav-link current' : 'nav-link'
+              }
+              to="/settings"
+              aria-current={pathname === '/settings' ? 'page' : undefined}
+            >
               Account
             </Link>
           </>
         ) : (
           <>
             <a className="nav-link hide-small" href="/#the-idea">
-              The idea
+              How it works
             </a>
             <Link className="nav-link" to="/auth">
               Sign in <ArrowRight size={15} />
@@ -52,10 +58,12 @@ export function Footer() {
     <footer className="footer wrap">
       <Link className="brand small-brand" to="/">
         terms apply
-        <Mark size={18} />
+        <span className="brand-period" aria-hidden="true">
+          .
+        </span>
       </Link>
-      <span>A little intention. In writing.</span>
-      <Link to="/privacy">Privacy & the fine print</Link>
+      <span>Private records. Self-reported outcomes.</span>
+      <Link to="/privacy">Privacy & terms</Link>
     </footer>
   );
 }
@@ -79,7 +87,7 @@ export function Loading() {
   return (
     <div className="loading" role="status">
       <LoaderCircle className="spin" size={22} />
-      <span>One moment…</span>
+      <span>Loading…</span>
     </div>
   );
 }
@@ -88,14 +96,14 @@ export function PageIntro({
   title,
   children,
 }: {
-  eyebrow: string;
+  eyebrow?: string;
   title: string;
   children?: ReactNode;
 }) {
   return (
     <div className="page-intro">
-      <p className="eyebrow">{eyebrow}</p>
-      <h1>{title}</h1>
+      {eyebrow && <p className="eyebrow">{eyebrow}</p>}
+      <h1 tabIndex={-1}>{title}</h1>
       {children && <div className="intro-copy">{children}</div>}
     </div>
   );
