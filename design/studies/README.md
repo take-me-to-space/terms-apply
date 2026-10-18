@@ -1,6 +1,6 @@
 # Terms Apply: visual studies
 
-Two exploratory directions, made on 18 October 2026. Neither has been selected or deployed. These files are independent of the production React entry point and contain no account credentials or database integration.
+Two exploratory directions, made on 18 October 2026. The owner subsequently selected **A · Print**; the production implementation follows `docs/DESIGN.md`. These studies remain as design history. Their files are independent of the production React entry point and contain no account credentials or database integration.
 
 The owner’s reference boards are the starting point: thoughtful vintage advertising, graphic posters, and unusual photographic compositions. The shared brief is coherence, useful writing, readable typography, and restraint. Humour should arise from an observation about the product; avoid motivational slogans, teasing the user, and decorative cleverness.
 

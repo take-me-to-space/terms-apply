@@ -1,6 +1,6 @@
 # Terms Apply
 
-A goal. A deadline. Your own terms. A private follow-through app built with React, Supabase, and Netlify.
+A private commitment app. Choose a goal, a deadline, and your own pledge if you miss it. Built with React, Supabase, and Netlify.
 
 ## Develop
 
@@ -28,6 +28,8 @@ For real **local** auth/database/mail integration, with Docker installed:
 npm run test:services
 ```
 
+For desktop/mobile screenshots and additional accessibility/layout checks during the real local journey, run `CAPTURE_DESIGN=1 npm run test:services`. Screenshots are written to Playwright's `test-results/` folder.
+
 The harness starts disposable PostgreSQL 17, Supabase Auth, PostgREST, Kong, and Mailpit containers. It generates temporary credentials in memory, applies the real migration, launches Vite on port 5174, runs the complete account journey, then removes its test containers. All ports bind to loopback. It refuses to reuse an existing local test database and never uses production keys. This suite does not send external emails or establish production delivery.
 
 `supabase/config.toml` is also available for developers who prefer the full Supabase CLI stack. Stop that stack before running the isolated integration harness; both use the standard local API/database ports.
@@ -41,7 +43,9 @@ Use [the step-by-step setup guide](docs/DEPLOYMENT.md). Import this GitHub repos
 - `src/` — responsive UI, account flows, composer, records, check-ins, settings, privacy.
 - `supabase/migrations/` — tables, RLS, immutable-write RPCs, reminder jobs, deletion.
 - `netlify/functions/reminders.ts` — scheduled, leased, idempotent email worker.
+- `public/fonts/`, `public/images/` — self-hosted licensed fonts and optimised design assets.
+- `supabase/templates/` — matching confirmation/recovery email templates; hosted Supabase needs these applied in its email-template settings.
 - `tests/` — SQL under real database roles, model/email tests, browser journeys.
-- [Product rules](docs/PRODUCT.md), [implementation plan](docs/PLAN.md), [operations](docs/OPERATIONS.md), [verification record](docs/VERIFICATION.md).
+- [Product rules](docs/PRODUCT.md), [design system](docs/DESIGN.md), [implementation plan](docs/PLAN.md), [operations](docs/OPERATIONS.md), [verification record](docs/VERIFICATION.md).
 
 Secrets belong in `.env` locally or Netlify/Supabase settings, never Git. Only `VITE_` variables are included in the browser bundle; **never** give a service credential that prefix.

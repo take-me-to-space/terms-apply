@@ -1,5 +1,13 @@
 # Operations
 
+## Deployment reference
+
+Owner-confirmed setup: the canonical app domain is `https://termsapply.me`; its Netlify project is `term-apply` (`https://term-apply.netlify.app`). Supabase project `termsapply` uses `https://rpdttrbgwnrroyaqdcns.supabase.co`. Transactional sending is through Resend on `mail.termsapply.me`. The separate waitlist at `https://terms-apply.netlify.app` remains unchanged. These identifiers are public; keys and credentials belong only in provider settings.
+
+The maintained source is GitHub `take-me-to-space/terms-apply` on `main`. During initial deployment, Netlify used `codex/terms-apply-app`; the redesign release updates that branch to the same tested commit too, so the existing production binding can pick it up. Check Netlify's actual production branch and published commit before diagnosing a stale site. Do not assume a Git push means a deploy has finished.
+
+Hosted Supabase email-template settings are managed separately from GitHub/Netlify. Matching signup and recovery HTML is in `supabase/templates/`; application instructions are in DEPLOYMENT.md. A code deploy updates reminder emails but does not change hosted authentication email templates.
+
 ## Reminders
 
 Netlify runs `reminders` every five minutes on the production deployment. The worker claims up to 10 due jobs per invocation, leases for 10 minutes, and rechecks consent, verified address, withdrawal, goal outcome, and pledge status immediately before sending. Requests are staggered by 750ms within a batch to avoid a burst against the email provider’s rate limit. There is one job per agreement and reminder kind. Create close to a deadline? Already-past advance reminders are skipped. A late/missed report after the pledge check-in schedules a pledge check-in immediately.

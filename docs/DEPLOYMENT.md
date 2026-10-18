@@ -16,6 +16,12 @@ This is the app, separate from `https://terms-apply.netlify.app/` and its existi
 2. Use a sender on the verified domain, for example `Terms Apply <hello@mail.yourdomain.com>`. Create a sending API key. Store it in Netlify server variables.
 3. Configure **custom SMTP in Supabase Authentication** too. Default Supabase email delivery is restricted and is not a production signup/recovery solution. For Resend use the current official SMTP settings (normally host `smtp.resend.com`, port 465, username `resend`, password your sending API key), with the verified sender. Confirm these against your provider dashboard. Secrets go in Supabase settings, never a SQL migration or the browser.
 4. Disable open/click tracking for transactional mail where possible. Review Resend data retention and processing terms. The reminder worker sends recipient address, generic reminder copy, scheduled time, timezone, and agreement link. It omits goal/pledge text and notes.
+5. Apply the matching account email templates in **Supabase → Authentication → Email → Templates** (the menu may be labelled Email Templates):
+   - **Confirm signup**: subject `Confirm your email — Terms Apply`; replace the HTML body with `supabase/templates/confirmation.html`.
+   - **Reset password**: subject `Reset your password — Terms Apply`; replace the HTML body with `supabase/templates/recovery.html`.
+   - Keep `{{ .ConfirmationURL }}` exactly as written. It preserves the authentication service's verification and PKCE redirect flow. Save both, then test a real signup and password reset from the same browser that requested the email.
+   - These files are configured for the local Supabase CLI too. Pushing code to GitHub/Netlify **does not update hosted Supabase templates**. The separate disposable Docker harness uses Auth's default templates; its successful journey does not validate a dashboard template change.
+6. Reminder emails include matching HTML and a plain-text alternative automatically after the Netlify function deploys. They load no remote images or fonts. The worker retains the same opt-in, eligibility and retry rules.
 
 ## 3. Netlify
 
