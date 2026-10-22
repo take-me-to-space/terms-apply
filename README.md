@@ -36,12 +36,13 @@ The harness starts disposable PostgreSQL 17, Supabase Auth, PostgREST, Kong, and
 
 ## Deploy
 
-Use [the step-by-step setup guide](docs/DEPLOYMENT.md). Import this GitHub repository into a **new** Netlify site; keep the owner's existing waitlist deployment and Google Sheet untouched. Set up Supabase, apply the migration, configure authentication SMTP/redirects, then add server-only Resend credentials for reminder delivery. No payments are enabled.
+Use [the step-by-step setup guide](docs/DEPLOYMENT.md). Import this GitHub repository into a **new** Netlify site; keep the owner's existing waitlist deployment and Google Sheet untouched. Set up Supabase, apply the migration, configure authentication SMTP/redirects, then add server-only Resend credentials for reminder delivery. The Dodo billing integration is disabled by default; follow [billing setup](docs/BILLING.md) for allowlisted test checkout before any live charging.
 
 ## How it is organised
 
 - `src/` — responsive UI, account flows, composer, records, check-ins, settings, privacy.
 - `supabase/migrations/` — tables, RLS, immutable-write RPCs, reminder jobs, deletion.
+- `netlify/functions/billing.ts`, `dodo-webhook.ts`, `billing-reconcile.ts` — authenticated hosted checkout, signed events, and subscription reconciliation.
 - `netlify/functions/reminders.ts` — scheduled, leased, idempotent email worker.
 - `public/fonts/`, `public/images/` — self-hosted licensed fonts and optimised design assets.
 - `supabase/templates/` — matching confirmation/recovery email templates; hosted Supabase needs these applied in its email-template settings.

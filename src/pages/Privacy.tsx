@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
+import { supportEmail } from '../lib/support';
 import { PageIntro } from '../components/ui';
 export function Privacy() {
-  const contact = import.meta.env.VITE_SUPPORT_EMAIL;
+  const contact = supportEmail;
   return (
     <article className="wrap legal-page">
       <PageIntro title="Privacy & terms">
@@ -10,8 +11,8 @@ export function Privacy() {
       <h2>What the app does</h2>
       <p>
         Terms Apply records what you tell it. It does not verify your actions,
-        enforce pledges, transfer money, or charge you for missing a goal. A
-        confirmed agreement is a personal commitment, not a contract for
+        enforce pledges, transfer money as a pledge, or charge you for missing a
+        goal. A confirmed agreement is a personal commitment, not a contract for
         enforced consequences. Choose safe, manageable pledges; essentials and
         risky behaviour have no place in one.
       </p>
@@ -64,11 +65,48 @@ export function Privacy() {
         answers cannot currently be edited in the app. Withdrawal preserves the
         original agreement.
       </p>
-      <h2>Billing and the separate waitlist</h2>
+      <h2 id="billing">Plans, billing & cancellation</h2>
       <p>
-        This version has no subscription billing or automatic charges. An
-        earlier waitlist is a separate system; joining it does not create an app
-        account, and deleting an app account does not delete a waitlist
+        Where billing is enabled, the free plan includes three new confirmed
+        commitments per calendar month, resetting at 00:00 UTC on the first.
+        Drafts do not count. Withdrawal does not restore the allowance.
+        Commitments made before the billing rollout do not count. Plus includes
+        unlimited new commitments for ₹199 per month, including taxes. Checkout
+        is optional; the free plan does not require a card. Existing records,
+        reports, exports, and reminders remain accessible on either plan.
+      </p>
+      <p>
+        Plus renews monthly until cancelled. Cancel renewal in Account or
+        through Dodo’s billing portal; paid access lasts through the period
+        already paid for. Cancellation does not automatically refund earlier
+        payments. A failed renewal does not extend paid access. When paid access
+        ends, the free monthly allowance applies, counting new commitments
+        already made that month. Missing a goal never creates a charge.
+      </p>
+      <p>
+        Dodo Payments handles checkout, payments, invoices, and subscription
+        billing as merchant of record. It receives your account email and
+        information you enter at checkout, including payment and billing
+        details. Terms Apply stores provider identifiers, payment-period dates,
+        and subscription status; it does not store card details or send your
+        goals, pledges, or notes to Dodo. Dodo may retain financial and tax
+        records after app-account deletion under its legal retention
+        obligations.
+      </p>
+      <p>
+        To request a refund, report an incorrect charge, or request account
+        deletion where an unfinished checkout prevents self-service deletion,
+        contact <a href={`mailto:${contact}`}>{contact}</a> with your account
+        email and payment reference. Do not send card details or passwords.
+        Refund requests are reviewed individually; your statutory consumer
+        rights are unaffected. Deleting an account cancels its subscription
+        immediately and ends remaining paid access; it does not itself issue a
+        refund.
+      </p>
+      <h2>The separate waitlist</h2>
+      <p>
+        The earlier waitlist is a separate system. Joining it does not create an
+        app account, and deleting an app account does not delete a waitlist
         submission.
       </p>
       {contact && (
@@ -82,7 +120,7 @@ export function Privacy() {
       )}
       <p className="fine-print">
         Use is intended for adults. This is a follow-through tool, not medical,
-        legal, or financial advice. Updated 18 October 2026.
+        legal, or financial advice. Updated 22 October 2026.
       </p>
     </article>
   );

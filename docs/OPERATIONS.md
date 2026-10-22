@@ -54,4 +54,4 @@ group by g.outcome;
 select outcome, count(*) from pledge_reports group by outcome;
 ```
 
-Pledge rows count answers, not unique users or final outcomes; for a final-outcome rate, filter `outcome <> 'not_yet'` and use triggered pledges as the denominator. Do not use unreported goals as missed goals. No billing or entitlement infrastructure exists yet; do not sell an automatically renewing subscription until implemented and tested.
+Pledge rows count answers, not unique users or final outcomes; for a final-outcome rate, filter `outcome <> 'not_yet'` and use triggered pledges as the denominator. Do not use unreported goals as missed goals. Billing operations and entitlement rules are in [BILLING.md](BILLING.md). Provider acceptance remains mandatory before selling subscriptions.

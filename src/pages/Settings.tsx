@@ -1,6 +1,9 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Bell, Download, LogOut, Trash2 } from 'lucide-react';
 import { Alert, Dialog, PageIntro } from '../components/ui';
+import { Billing } from '../components/Billing';
+import { supportEmail } from '../lib/support';
+import { billingAction } from '../lib/billing';
 import { useAuth } from '../lib/auth';
 import {
   client,
@@ -118,6 +121,8 @@ export function Settings() {
         password,
       });
       if (authError) throw authError;
+      const { data: billing } = await client().rpc('get_billing_state');
+      if (billing?.has_customer) await billingAction('prepare-delete');
       const { error } = await client().rpc('delete_my_account');
       if (error) throw error;
       await client().auth.signOut({ scope: 'local' });
@@ -148,6 +153,7 @@ export function Settings() {
           <LogOut size={17} /> Sign out
         </button>
       </section>
+      <Billing />
       <section className="settings-section">
         <div>
           <Bell size={24} />
@@ -201,8 +207,10 @@ export function Settings() {
             you want to keep it.
           </p>
           <p className="field-hint">
-            Email provider logs and database backups may persist under their
-            retention policies. Already-sent email cannot be recalled.
+            Billing and tax records held by Dodo Payments, email provider logs,
+            and database backups may persist under their retention policies.
+            Already-sent email cannot be recalled. If billing prevents deletion,
+            request help at {supportEmail}.
           </p>
         </div>
         <button
@@ -225,8 +233,10 @@ export function Settings() {
         >
           <form className="stack" onSubmit={deleteAccount}>
             <p>
-              This permanently deletes your account and app records. It cannot
-              be undone.
+              This permanently deletes your account and app records. Any active
+              subscription will be cancelled immediately before deletion;
+              remaining paid access will end. This cannot be undone. An
+              unfinished checkout may need to be closed by support first.
             </p>
             {error && <Alert>{error}</Alert>}
             <label>

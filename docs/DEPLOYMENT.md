@@ -2,6 +2,8 @@
 
 This is the app, separate from `https://terms-apply.netlify.app/` and its existing Google Sheet waitlist. Do not repoint or replace that site until you choose to retire the waitlist. These instructions do not migrate waitlist entries into accounts.
 
+For the optional ₹199 subscription and three-commitment free allowance, follow [BILLING.md](BILLING.md) after the existing account/reminder setup. The billing migration starts disabled.
+
 ## 1. Supabase
 
 1. Create a Supabase project in a region appropriate for your users. Save the database password in your password manager. Free service plans are useful for evaluation; review pausing, backups, resource limits, and commercial requirements before public launch.

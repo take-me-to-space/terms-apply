@@ -354,3 +354,167 @@ test('real signup email, confirmation, persistence, isolation, check-ins, recove
     if (otherId) await admin.auth.admin.deleteUser(otherId);
   }
 });
+
+test('real database billing quota, concurrent confirmation, upgrade consent, and paid-period access', async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  const url = process.env.VITE_SUPABASE_URL!;
+  const admin = createClient(url, process.env.TEST_SUPABASE_SERVICE_ROLE_KEY!, {
+    auth: { persistSession: false },
+  });
+  const email = `billing-${randomUUID()}@example.com`;
+  const password = `Local-billing-${randomUUID()}!`;
+  const { data, error } = await admin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+  });
+  expect(error).toBeNull();
+  const userId = data.user!.id;
+  const signed = createClient(url, process.env.VITE_SUPABASE_ANON_KEY!, {
+    auth: { persistSession: false },
+  });
+  try {
+    expect(
+      (await signed.auth.signInWithPassword({ email, password })).error,
+    ).toBeNull();
+    expect(
+      (
+        await admin
+          .from('billing_config')
+          .update({
+            enabled: true,
+            environment: 'test_mode',
+            started_at: new Date(Date.now() - 1000).toISOString(),
+          })
+          .eq('singleton', true)
+      ).error,
+    ).toBeNull();
+    expect(
+      (await admin.from('billing_test_users').insert({ user_id: userId }))
+        .error,
+    ).toBeNull();
+    // Requests run simultaneously in independent PostgREST transactions.
+    const attempts = await Promise.all(
+      Array.from({ length: 8 }, (_, i) =>
+        signed.rpc('create_commitment', {
+          p_goal: `Submit application ${i}`,
+          p_done_means: 'The application is submitted.',
+          p_deadline_at: new Date(Date.now() + 86400000).toISOString(),
+          p_pledge: 'Give up Netflix for two evenings.',
+          p_pledge_check_at: new Date(Date.now() + 3 * 86400000).toISOString(),
+          p_timezone: 'UTC',
+          p_request_id: randomUUID(),
+        }),
+      ),
+    );
+    expect(attempts.filter((r) => !r.error)).toHaveLength(3);
+    expect(
+      attempts.filter((r) =>
+        r.error?.message.includes('Monthly allowance used'),
+      ),
+    ).toHaveLength(5);
+    await page.goto('/auth');
+    await page.getByLabel('Email address').fill(email);
+    await page.getByLabel('Password', { exact: true }).fill(password);
+    await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+    await expect(page).toHaveURL(/\/app$/);
+    await expect(
+      page.getByText('0 of 3 new commitments left this month.', {
+        exact: false,
+      }),
+    ).toBeVisible();
+    await page.goto('/new');
+    await page.getByRole('button', { name: 'Use the walking example' }).click();
+    await page.getByRole('button', { name: 'Review terms' }).click();
+    await page.getByRole('checkbox').check();
+    await page.getByRole('button', { name: 'Confirm commitment' }).click();
+    await expect(page.getByRole('alert')).toContainText(
+      'Monthly allowance used',
+    );
+    await expect(
+      page.getByRole('heading', { name: 'Review your terms' }),
+    ).toBeVisible();
+    await page.goto('/settings');
+    await captureResponsive(page, 'billing-free');
+    await page.getByRole('button', { name: 'Plus · ₹199/month' }).click();
+    await expect(
+      page.getByRole('button', { name: 'Continue to Dodo' }),
+    ).toBeDisabled();
+    await captureResponsive(page, 'billing-consent');
+    await page.getByRole('checkbox').check();
+    await expect(
+      page.getByRole('button', { name: 'Continue to Dodo' }),
+    ).toBeEnabled();
+    await page.keyboard.press('Escape');
+    const now = new Date();
+    expect(
+      (
+        await admin
+          .from('billing_customers')
+          .insert({
+            user_id: userId,
+            environment: 'test_mode',
+            customer_id: 'cus_local_test',
+            checkout_id: 'cks_local',
+            checkout_state: 'open',
+          })
+      ).error,
+    ).toBeNull();
+    // This is an explicit local provider snapshot fixture, not a real payment.
+    expect(
+      (
+        await admin.rpc('apply_billing_snapshot', {
+          p_user_id: userId,
+          p_environment: 'test_mode',
+          p_observed_at: now.toISOString(),
+          p_subscriptions: [
+            {
+              subscription_id: 'sub_local',
+              product_id: 'pdt_0NqIIp0MtDK9rLdhZdqff',
+              status: 'active',
+              cancel_at_period_end: true,
+              next_billing_at: new Date(now.getTime() + 86400000).toISOString(),
+            },
+          ],
+          p_receipts: [
+            {
+              payment_id: 'pay_local',
+              subscription_id: 'sub_local',
+              product_id: 'pdt_0NqIIp0MtDK9rLdhZdqff',
+              starts_at: new Date(now.getTime() - 1000).toISOString(),
+              ends_at: new Date(now.getTime() + 86400000).toISOString(),
+              valid: true,
+            },
+          ],
+          p_completed_checkouts: ['cks_local'],
+        })
+      ).error,
+    ).toBeNull();
+    await page.reload();
+    await expect(
+      page.getByRole('heading', { name: 'Terms Apply Plus', exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByText('Renewal is cancelled.', { exact: false }),
+    ).toBeVisible();
+    await captureResponsive(page, 'billing-paid-cancelled');
+    // The original unsigned draft survives the upgrade detour and can now be confirmed.
+    await page.goto('/new');
+    await expect(page.getByLabel('What will you do?')).toHaveValue(
+      'Walk for 30 minutes',
+    );
+    await page.getByRole('button', { name: 'Review terms' }).click();
+    await page.getByRole('checkbox').check();
+    await page.getByRole('button', { name: 'Confirm commitment' }).click();
+    await expect(page).toHaveURL(/\/commitments\/[\w-]+$/);
+  } finally {
+    await signed.auth.signOut();
+    await admin.auth.admin.deleteUser(userId);
+    await admin
+      .from('billing_config')
+      .update({ enabled: false })
+      .eq('singleton', true);
+  }
+});

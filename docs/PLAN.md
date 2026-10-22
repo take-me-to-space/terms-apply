@@ -6,4 +6,4 @@
 4. Implement durable reminders with consent, state checks, bounded retries, and operator diagnostics.
 5. Validate the database under actual user roles, browser flows, production bundle, and server function types. Document owner setup and a production smoke-test checklist.
 
-Routine defaults: Netlify hosting; Supabase auth/database; Resend delivery; email/password; no billing; browser timezone. External blockers for publication and live validation: owner service projects, Supabase keys, Resend key and verified sender, Netlify access, chosen canonical domain. No secret values belong in chat or Git.
+Routine defaults: Netlify hosting; Supabase auth/database; Resend delivery; email/password; browser timezone. Optional billing now follows the owner-approved plan in BILLING.md. External blockers for publication and live validation: owner service projects, Supabase keys, Resend key and verified sender, Netlify access, chosen canonical domain. No secret values belong in chat or Git.

@@ -1763,3 +1763,46 @@ input[type='radio'] {
     scroll-behavior: auto !important;
   }
 }
+
+/* Account billing follows the same ruled-page layout as the rest of Account. */
+.billing-section {
+  padding: 2.5rem 0;
+  border-bottom: 1px solid var(--line, #d6d5cc);
+}
+.billing-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+.billing-heading h2 {
+  margin-top: 0.5rem;
+}
+.billing-price {
+  font-size: 1.35rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.billing-actions {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  margin: 1.5rem 0;
+}
+@media (max-width: 420px) {
+  .billing-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0;
+  }
+}
+
+.dialog .stack > .checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+.dialog .checkbox-label input {
+  flex: 0 0 auto;
+  margin-top: 0.25rem;
+}

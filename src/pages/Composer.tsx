@@ -1,3 +1,4 @@
+import { Allowance } from '../components/Billing';
 import { useEffect, useState, type FormEvent } from 'react';
 import { ArrowLeft, ArrowRight, Check, RotateCcw } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -208,6 +209,7 @@ export function Composer() {
           Use the walking example <ArrowRight size={15} aria-hidden="true" />
         </button>
       )}
+      <Allowance />
       <div className="composer-grid">
         <div>
           {error && <Alert>{error}</Alert>}

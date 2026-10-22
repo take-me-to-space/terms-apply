@@ -1,6 +1,6 @@
 # Terms Apply
 
-A private agreement with yourself: one concrete goal, a deadline, and a pledge you choose if you miss it. The product records self-reports. It does not verify behaviour, enforce consequences, or move money.
+A private agreement with yourself: one concrete goal, a deadline, and a pledge you choose if you miss it. The product records self-reports. It does not verify behaviour, enforce consequences, or move money as a pledge. Optional subscription billing is separate.
 
 ## First release
 
@@ -12,7 +12,7 @@ A private agreement with yourself: one concrete goal, a deadline, and a pledge y
 6. Optional email: roughly two hours before deadline, one goal check-in after deadline, and one pledge check-in if relevant. No repeated nagging. A last-minute commitment skips an already-past advance reminder. Worker rechecks state and consent before delivery.
 7. Server-enforced user isolation, immutable records, private history, and deletion through a signed-in confirmation flow.
 
-No subscriptions, paywalls, recurring habits, public feeds, proof collection, automatic penalties, or waitlist integration in this release. The existing Netlify landing page / Google Sheet remains separate and untouched.
+No recurring habits, public feeds, proof collection, automatic penalties, or waitlist integration. Optional subscription billing is described below. The existing Netlify landing page / Google Sheet remains separate and untouched.
 
 ## Architecture
 
@@ -22,7 +22,13 @@ A scheduled Netlify function claims durable email jobs in Postgres, rechecks eli
 
 ## Measurement and monetisation
 
-Do not charge yet. The private data already permits aggregate counts of first commitments, reports, repeat commitments, and self-reported pledge outcomes. Use aggregate queries (docs/OPERATIONS.md), with no third-party behavioural tracker. A paid offer should be designed after learning whether people return; the seven-free/₹199 proposal is not implemented or treated as decided.
+The owner approved the initial offer on 22 October 2026: three new commitments per UTC calendar month free; Plus is ₹199/month including taxes for unlimited new commitments, renewing until cancelled. All plans keep existing records, reminders, check-ins, and exports. Drafts do not count. Withdrawals do not replenish usage. Paid commitments made in the current month count if paid access later ends. Pre-rollout commitments do not count. The database serialises confirmations per account and deduplicates retries before enforcing usage.
+
+Dodo hosts checkout as merchant of record. Only the server selects the product and binds the provider customer to a verified account. Verified webhooks trigger fresh provider lookups. Paid access requires an actual successful INR 199 payment with a service period for the configured subscription; an active status, trial, method-verification payment, redirect, or client input never grants access. Refunded/disputed receipts cannot grant access. Cancellation stops renewal and preserves the paid period; failed renewal never extends it. Test receipts never grant live access. Reconciliation and Account refresh recover missed webhooks.
+
+Billing is disabled by default. Test rollout is restricted to explicitly allowlisted users. Live activation requires separate live product/keys/webhook and provider acceptance. See BILLING.md. The operator-approved temporary support address is sanyam.jain2027@mastersunion.org; change it through VITE_SUPPORT_EMAIL when a monitored domain inbox is ready. App deletion cancels active subscriptions immediately; the database blocks deletion while a payable checkout or active subscription remains. Unfinished checkouts need a documented support review because the SDK has no checkout invalidation endpoint.
+
+Use aggregate queries (OPERATIONS.md) for first commitments, repeat commitments, reports, and self-reported pledge outcomes; no third-party behavioural tracker. A payment shows subscription purchase, not independent verification of goal behaviour.
 
 ## Delivery boundaries
 

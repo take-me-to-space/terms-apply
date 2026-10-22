@@ -1,3 +1,4 @@
+import { Allowance } from '../components/Billing';
 import { useCallback, useEffect, useState } from 'react';
 import { ArrowRight, Plus, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -57,6 +58,7 @@ export function Dashboard() {
           <Plus size={18} /> New commitment
         </Link>
       </div>
+      <Allowance />
       {!remindersAvailable && (
         <div className="quiet-banner">
           Email reminders aren’t available yet. Keep your own reminder for now.{' '}
