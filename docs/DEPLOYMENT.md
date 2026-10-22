@@ -45,6 +45,8 @@ This is the app, separate from `https://terms-apply.netlify.app/` and its existi
    | `EMAIL_FROM`                | Verified sender, e.g. `Terms Apply <hello@mail.example.com>`  |
    | `APP_URL`                   | Canonical app origin, e.g. `https://app.example.com`, no path |
 
+   `SUPABASE_URL` is a public project address, also used by `VITE_SUPABASE_URL` in the browser. The repository's Netlify configuration excludes only this public URL variable from value-based secrets scanning, so documenting the project address does not block deployment. Keep `SUPABASE_SERVICE_ROLE_KEY` and `RESEND_API_KEY` secret and included in scanning. Never add either key to the omit list or give it a `VITE_` prefix.
+
 4. Deploy. Test on the Netlify production site first. Scheduled functions run on published production deploys, not deploy previews. Confirm your Netlify plan supports scheduled functions, timeout limits, and expected usage. Inspect the function bundle/logs.
 5. Point your purchased domain/subdomain to this **new app site** in Netlify's Domain management, enable HTTPS, then update Supabase URLs and `APP_URL`. Trigger a rebuild after changing `VITE_` variables.
 6. Deploy previews must use a separate staging Supabase project and email setup, or omit credentials. **Never** point an untrusted PR preview at production keys. Never copy production service keys into preview contexts. All normal app writes are browser-to-Supabase with RLS; previews sharing a project share that project's data.

@@ -1,5 +1,13 @@
 # Verification record
 
+## Netlify scanner configuration — 22 October 2026
+
+The owner supplied the full scanner finding: exactly one match, for the public `SUPABASE_URL` value in `docs/OPERATIONS.md`. The earlier generated diagnosis attributing the failure to `RESEND_API_KEY` in browser JavaScript was not supported by that log.
+
+`netlify.toml` now excludes only `SUPABASE_URL` from value-based secrets scanning. This address is intentionally public, and the frontend already uses the same project address. Scanning remains enabled for service-role, Resend and other secrets. No credentials are hardcoded or removed from protection.
+
+A fresh production build with unique, synthetic server-variable canaries found none of those values in the browser output; a synthetic public frontend key was included as expected. Only `.env.example` is tracked, with no values filled in. A tracked-file check found no credential-shaped Resend or Supabase secret literals. These checks establish the build boundary for the checked source; hosted secret values were not available to inspect. The hosted retry still needs Netlify's published-deploy result.
+
 ## Direction A redesign — 18 October 2026
 
 Runtime: Node 24.19.0, Chromium installed at `/usr/bin/chromium`. The owner selected A · Print. The redesign changes presentation and copy throughout the app and reminder emails; database migrations and access-control rules are unchanged. No new environment variables or database setup are required for the web redesign.

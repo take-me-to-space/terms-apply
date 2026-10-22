@@ -3,6 +3,8 @@
   publish = "dist"
 [build.environment]
   NODE_VERSION = "24"
+  # Public project URL, also exposed as VITE_SUPABASE_URL. Keep API keys scanned.
+  SECRETS_SCAN_OMIT_KEYS = "SUPABASE_URL"
 [functions]
   node_bundler = "esbuild"
 [functions."reminders"]
