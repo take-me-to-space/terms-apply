@@ -1,7 +1,7 @@
 // Real Auth/PostgREST/Postgres/Mailpit, bound to localhost. Random in-memory keys.
 import { execFileSync, spawnSync } from 'node:child_process';
 import { createHmac, randomBytes } from 'node:crypto';
-import { chmodSync, readFileSync } from 'node:fs';
+import { chmodSync, readFileSync, readdirSync } from 'node:fs';
 const password = randomBytes(24).toString('hex');
 const secret = randomBytes(32).toString('hex');
 const env = {
@@ -98,7 +98,10 @@ try {
   compose(['up', '-d']);
   await waitFor('http://127.0.0.1:54321/auth/v1/health');
   sql(readFileSync('dev/auth-claims.sql', 'utf8'));
-  sql(readFileSync('supabase/migrations/202610170001_initial.sql', 'utf8'));
+  for (const file of readdirSync('supabase/migrations')
+    .filter((f) => f.endsWith('.sql'))
+    .sort())
+    sql(readFileSync(`supabase/migrations/${file}`, 'utf8'));
   sql("notify pgrst, 'reload schema';");
   await waitFor('http://127.0.0.1:54321/rest/v1/');
   const result = spawnSync(

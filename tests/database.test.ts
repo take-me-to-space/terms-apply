@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { PGlite } from '@electric-sql/pglite';
 import { beforeAll, beforeEach, afterAll, describe, expect, it } from 'vitest';
 
@@ -40,13 +40,16 @@ beforeAll(async () => {
     create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
     grant usage on schema public,auth to anon,authenticated,service_role;
     grant execute on function auth.uid() to anon,authenticated,service_role;`);
-  await db.exec(
-    readFileSync('supabase/migrations/202610170001_initial.sql', 'utf8'),
-  );
+  for (const file of readdirSync('supabase/migrations')
+    .filter((f) => f.endsWith('.sql'))
+    .sort())
+    await db.exec(readFileSync(`supabase/migrations/${file}`, 'utf8'));
 });
 beforeEach(async () => {
   await admin();
-  await db.exec('truncate auth.users cascade;');
+  await db.exec(
+    "truncate auth.users cascade; update billing_config set enabled=false,environment='test_mode',started_at=now();",
+  );
   await db.query(
     "insert into auth.users values($1,'alice@example.com',now()),($2,'bob@example.com',now())",
     [ALICE, BOB],
@@ -478,5 +481,229 @@ describe('account deletion', () => {
     expect(
       await scalar<number>('select count(*)::int as value from reminder_jobs'),
     ).toBe(2);
+  });
+});
+
+async function enableBilling(environment = 'test_mode') {
+  await admin();
+  await db.query(
+    "update billing_config set enabled=true,environment=$1,started_at=now()-interval '1 day'",
+    [environment],
+  );
+  await db.query(
+    'insert into billing_test_users values($1) on conflict do nothing',
+    [ALICE],
+  );
+  await role();
+}
+async function billingState() {
+  return scalar<{
+    enabled: boolean;
+    paid: boolean;
+    used: number;
+    renewing: boolean;
+  }>('select get_billing_state() as value');
+}
+async function paidSnapshot({
+  valid = true,
+  environment = 'test_mode',
+  status = 'active',
+  cancel = false,
+  observed = new Date().toISOString(),
+  periodEnd = new Date(Date.now() + 86400000).toISOString(),
+} = {}) {
+  await role('service_role');
+  await db.query(
+    "insert into billing_customers(user_id,environment,customer_id,checkout_id,checkout_state) values($1,$2,'cus_alice','cks_paid','open') on conflict do nothing",
+    [ALICE, environment],
+  );
+  await db.query('select apply_billing_snapshot($1,$2,$3,$4,$5,$6)', [
+    ALICE,
+    environment,
+    observed,
+    JSON.stringify([
+      {
+        subscription_id: 'sub_alice',
+        product_id: 'pdt_0NqIIp0MtDK9rLdhZdqff',
+        status,
+        cancel_at_period_end: cancel,
+        next_billing_at: periodEnd,
+      },
+    ]),
+    JSON.stringify([
+      {
+        payment_id: 'pay_alice',
+        subscription_id: 'sub_alice',
+        product_id: 'pdt_0NqIIp0MtDK9rLdhZdqff',
+        starts_at: new Date(Date.now() - 86400000).toISOString(),
+        ends_at: periodEnd,
+        valid,
+      },
+    ]),
+    JSON.stringify(['cks_paid']),
+  ]);
+  await role();
+}
+describe('billing access, allowances and lifecycle', () => {
+  it('keeps rollout off by default and isolates test mode to the owner allowlist', async () => {
+    expect((await billingState()).enabled).toBe(false);
+    await enableBilling();
+    expect((await billingState()).enabled).toBe(true);
+    await role('authenticated', BOB);
+    expect((await billingState()).enabled).toBe(false);
+    for (let i = 0; i < 4; i++) await create();
+    await role();
+    for (let i = 0; i < 3; i++) await create();
+    await expect(create()).rejects.toThrow('Monthly allowance used');
+  });
+  it('counts confirmed commitments, preserves idempotent retries, and never refunds usage on withdrawal', async () => {
+    await enableBilling();
+    const args = [
+      'Write the application',
+      'One submitted application',
+      new Date(Date.now() + 86400000).toISOString(),
+      'No Netflix',
+      new Date(Date.now() + 2 * 86400000).toISOString(),
+      'UTC',
+      '33333333-3333-4333-8333-333333333333',
+    ];
+    const sql = 'select create_commitment($1,$2,$3,$4,$5,$6,$7) as value';
+    const id = await scalar(sql, args);
+    await db.query('select withdraw_commitment($1)', [id]);
+    await create();
+    await create();
+    expect(await scalar(sql, args)).toBe(id);
+    expect((await billingState()).used).toBe(3);
+    await expect(create()).rejects.toThrow('Monthly allowance used');
+    // A full quota does not prevent recording the goal or reading existing records.
+    const active = await scalar(
+      'select id::text as value from commitments where id<>$1 limit 1',
+      [id],
+    );
+    await db.query("select report_goal($1,'completed',now())", [active]);
+    expect(
+      await scalar<number>('select count(*)::int as value from commitments'),
+    ).toBe(3);
+  });
+  it('resets by UTC calendar month and does not count pre-rollout records', async () => {
+    const legacy = await create();
+    await enableBilling();
+    await admin();
+    await db.query(
+      "update commitments set confirmed_at=date_trunc('month',now() at time zone 'UTC') at time zone 'UTC'-interval '1 second' where id=$1",
+      [legacy],
+    );
+    await role();
+    expect((await billingState()).used).toBe(0);
+    await create();
+    expect((await billingState()).used).toBe(1);
+    await admin();
+    await db.exec(
+      "update billing_config set started_at=now()+interval '1 second'",
+    );
+    await role();
+    expect((await billingState()).used).toBe(0);
+  });
+  it('grants Plus only from a paid receipt and separates test receipts from live access', async () => {
+    await enableBilling();
+    await paidSnapshot();
+    expect((await billingState()).paid).toBe(true);
+    for (let i = 0; i < 5; i++) await create();
+    await admin();
+    await db.exec("update billing_config set environment='live_mode'");
+    await role();
+    expect((await billingState()).paid).toBe(false);
+    await expect(create()).rejects.toThrow('Monthly allowance used');
+    await role('authenticated', BOB);
+    expect((await billingState()).paid).toBe(false);
+  });
+  it('retains paid access after cancelling renewal and refuses to extend an expired or refunded period', async () => {
+    await enableBilling();
+    await paidSnapshot({ cancel: true });
+    expect((await billingState()).paid).toBe(true);
+    expect((await billingState()).renewing).toBe(false);
+    await paidSnapshot({
+      valid: false,
+      observed: new Date(Date.now() + 1000).toISOString(),
+    });
+    expect((await billingState()).paid).toBe(false);
+    // A delayed older event cannot restore a refunded receipt.
+    await paidSnapshot({ observed: new Date(Date.now() - 1000).toISOString() });
+    expect((await billingState()).paid).toBe(false);
+  });
+  it('blocks browser tampering with subscriptions, receipts, test access, and service RPCs', async () => {
+    for (const table of [
+      'billing_config',
+      'billing_test_users',
+      'billing_customers',
+      'billing_subscriptions',
+      'billing_receipts',
+      'billing_events',
+    ]) {
+      await expect(db.query(`select * from ${table}`)).rejects.toThrow(
+        'permission denied',
+      );
+    }
+    await expect(
+      db.query("select reserve_billing_checkout($1,'test_mode')", [BOB]),
+    ).rejects.toThrow('permission denied');
+    await expect(
+      db.query(
+        "select apply_billing_snapshot($1,'test_mode',now(),'[]','[]','[]')",
+        [BOB],
+      ),
+    ).rejects.toThrow('permission denied');
+    await role('anon', '');
+    await expect(db.query('select get_billing_state()')).rejects.toThrow(
+      'permission denied',
+    );
+  });
+  it('serialises checkout reservations, reuses unfinished sessions, and refuses duplicate subscriptions', async () => {
+    await enableBilling();
+    await role('service_role');
+    const reserve =
+      "select (reserve_billing_checkout($1,'test_mode')).checkout_request::text as value";
+    const first = await scalar(reserve, [ALICE]);
+    await expect(db.query(reserve, [ALICE])).rejects.toThrow('already opening');
+    await db.exec(
+      "update billing_customers set checkout_lease_until=now()-interval '1 second'",
+    );
+    expect(await scalar(reserve, [ALICE])).toBe(first);
+    await paidSnapshot();
+    await role('service_role');
+    await expect(db.query(reserve, [ALICE])).rejects.toThrow(
+      'existing subscription',
+    );
+    await expect(db.query(reserve, [BOB])).rejects.toThrow('not available');
+  });
+  it('does not let account deletion orphan subscriptions or a still-payable checkout', async () => {
+    await enableBilling();
+    await paidSnapshot({ cancel: true });
+    await expect(db.exec('select delete_my_account()')).rejects.toThrow(
+      'Close billing',
+    );
+    await paidSnapshot({
+      status: 'cancelled',
+      observed: new Date(Date.now() + 1000).toISOString(),
+    });
+    await admin();
+    await db.exec("update billing_customers set checkout_state='open'");
+    await role();
+    await expect(db.exec('select delete_my_account()')).rejects.toThrow(
+      'Close billing',
+    );
+    await admin();
+    await db.exec("update billing_customers set checkout_state='complete'");
+    await role();
+    await db.exec('select delete_my_account()');
+    await admin();
+    expect(
+      await scalar<number>(
+        'select count(*)::int as value from billing_receipts',
+      ),
+    ).toBe(0);
+    expect(
+      await scalar<number>('select count(*)::int as value from auth.users'),
+    ).toBe(1);
   });
 });

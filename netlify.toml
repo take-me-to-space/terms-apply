@@ -3,10 +3,12 @@
   publish = "dist"
 [build.environment]
   NODE_VERSION = "24"
-  # Public project URL, also exposed as VITE_SUPABASE_URL. Keep API keys scanned.
-  SECRETS_SCAN_OMIT_KEYS = "SUPABASE_URL"
+  # Public project/app URLs, product ID and support contact. Keep credentials scanned.
+  SECRETS_SCAN_OMIT_KEYS = "SUPABASE_URL,APP_URL,DODO_PRODUCT_ID,VITE_SUPPORT_EMAIL"
 [functions]
   node_bundler = "esbuild"
+[functions."billing-reconcile"]
+  schedule = "*/5 * * * *"
 [functions."reminders"]
   schedule = "*/5 * * * *"
 [[redirects]]
