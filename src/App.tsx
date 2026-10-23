@@ -1,6 +1,7 @@
 import { Component, Fragment, lazy, Suspense, type ReactNode } from 'react';
 import { Navigate, Route, Routes, Link } from 'react-router-dom';
 import { Footer, Header, Loading, RouteFocus } from './components/ui';
+import { Clarity } from './components/Clarity';
 import { useAuth } from './lib/auth';
 import { Landing } from './pages/Landing';
 const Auth = lazy(() =>
@@ -65,8 +66,14 @@ export function App() {
       <a className="skip-link" href="#main">
         Skip to content
       </a>
+      <Clarity />
       <Header />
-      <main id="main" tabIndex={-1}>
+      <main
+        id="main"
+        tabIndex={-1}
+        className="clarity-mask"
+        data-clarity-mask="true"
+      >
         <RouteFocus />
         <Suspense fallback={<Loading />}>
           <Routes>

@@ -1,5 +1,9 @@
 # Verification record
 
+## Microsoft Clarity — 23 October 2026
+
+Added project `z28dwmlrbn` to production builds. The primary app content is marked with Clarity's masking attributes so goals, pledges, reports and form content are hidden in session recordings. Netlify's content security policy allows Clarity's script and telemetry hosts. The privacy page now describes page URLs, interaction/device data, masking, operator access and Microsoft's policy. The production bundle compiled successfully. A live request to Clarity and a recording in the owner's Clarity dashboard still need confirmation after Netlify deploy; no external project dashboard is connected here.
+
 ## Dodo billing integration — 22 October 2026
 
 The owner approved 3 new commitments per UTC calendar month free and ₹199/month Plus, unlimited new commitments, with existing records/reminders/reporting accessible on either plan. They supplied a test product ID and temporary monitored support email. No Dodo API/signing keys are available in this workspace; no hosted Supabase billing migration or provider configuration has been applied from here. Billing is disabled in the additive migration, with test access limited to allowlisted accounts. **Live charging remains disabled.**

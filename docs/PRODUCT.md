@@ -28,7 +28,7 @@ Dodo hosts checkout as merchant of record. Only the server selects the product a
 
 Billing is disabled by default. Test rollout is restricted to explicitly allowlisted users. Live activation requires separate live product/keys/webhook and provider acceptance. See BILLING.md. The operator-approved temporary support address is sanyam.jain2027@mastersunion.org; change it through VITE_SUPPORT_EMAIL when a monitored domain inbox is ready. App deletion cancels active subscriptions immediately; the database blocks deletion while a payable checkout or active subscription remains. Unfinished checkouts need a documented support review because the SDK has no checkout invalidation endpoint.
 
-Use aggregate queries (OPERATIONS.md) for first commitments, repeat commitments, reports, and self-reported pledge outcomes; no third-party behavioural tracker. A payment shows subscription purchase, not independent verification of goal behaviour.
+Use aggregate queries (OPERATIONS.md) for first commitments, repeat commitments, reports, and self-reported pledge outcomes. Microsoft Clarity is used for product analytics with the main page content masked in recordings; there are no advertising trackers. A payment shows subscription purchase, not independent verification of goal behaviour.
 
 ## Delivery boundaries
 

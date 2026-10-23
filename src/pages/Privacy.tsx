@@ -43,7 +43,24 @@ export function Privacy() {
         operator.
       </p>
       <p>
-        Providers may retain security, delivery, and infrastructure logs
+        Microsoft Clarity provides product analytics and session recordings. It
+        receives visited page URLs, interaction events, and browser and device
+        details. The app masks the main page content in recordings, including
+        your goals, pledges, and reports. Clarity also masks form fields. We do
+        not send your account email or name to Clarity. Microsoft may use
+        cookies or similar technologies and retains data under its own policy.
+        The operator can review recordings in the Clarity project. Read{' '}
+        <a
+          href="https://privacy.microsoft.com/privacystatement"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Microsoft’s privacy statement
+        </a>
+        .
+      </p>
+      <p>
+        Other providers may retain security, delivery, and infrastructure logs
         according to their policies. The app does not install advertising
         trackers or share your records with other users.
       </p>
