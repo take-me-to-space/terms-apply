@@ -2,7 +2,7 @@
 
 This is the app, separate from `https://terms-apply.netlify.app/` and its existing Google Sheet waitlist. Do not repoint or replace that site until you choose to retire the waitlist. These instructions do not migrate waitlist entries into accounts.
 
-For the optional ₹199 subscription and three-commitment free allowance, follow [BILLING.md](BILLING.md) after the existing account/reminder setup. The billing migration starts disabled.
+For the optional ₹99 subscription and three-commitment free allowance, follow [BILLING.md](BILLING.md) after the existing account/reminder setup. The billing migration starts disabled.
 
 ## 1. Supabase
 

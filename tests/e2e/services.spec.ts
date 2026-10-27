@@ -386,6 +386,7 @@ test('real database billing quota, concurrent confirmation, upgrade consent, and
           .update({
             enabled: true,
             environment: 'test_mode',
+            product_id: 'pdt_0NqIIp0MtDK9rLdhZdqff',
             started_at: new Date(Date.now() - 1000).toISOString(),
           })
           .eq('singleton', true)
@@ -438,7 +439,7 @@ test('real database billing quota, concurrent confirmation, upgrade consent, and
     ).toBeVisible();
     await page.goto('/settings');
     await captureResponsive(page, 'billing-free');
-    await page.getByRole('button', { name: 'Plus · ₹199/month' }).click();
+    await page.getByRole('button', { name: 'Plus · ₹99/month' }).click();
     await expect(
       page.getByRole('button', { name: 'Continue to Dodo' }),
     ).toBeDisabled();
@@ -451,15 +452,13 @@ test('real database billing quota, concurrent confirmation, upgrade consent, and
     const now = new Date();
     expect(
       (
-        await admin
-          .from('billing_customers')
-          .insert({
-            user_id: userId,
-            environment: 'test_mode',
-            customer_id: 'cus_local_test',
-            checkout_id: 'cks_local',
-            checkout_state: 'open',
-          })
+        await admin.from('billing_customers').insert({
+          user_id: userId,
+          environment: 'test_mode',
+          customer_id: 'cus_local_test',
+          checkout_id: 'cks_local',
+          checkout_state: 'open',
+        })
       ).error,
     ).toBeNull();
     // This is an explicit local provider snapshot fixture, not a real payment.

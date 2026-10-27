@@ -103,7 +103,7 @@ export function validateProduct(product: Product) {
     !product.is_recurring ||
     p.type !== 'recurring_price' ||
     p.currency !== 'INR' ||
-    p.price !== 19900 ||
+    p.price !== 9900 ||
     p.payment_frequency_count !== 1 ||
     p.payment_frequency_interval !== 'Month' ||
     p.subscription_period_count !== 20 ||
@@ -115,7 +115,7 @@ export function validateProduct(product: Product) {
     p.discount_bps
   )
     throw new BillingError(
-      'The billing product does not match the ₹199 monthly plan. Please contact support.',
+      'The billing product does not match the ₹99 monthly plan. Please contact support.',
     );
 }
 export function providerUrl(value: string | null | undefined) {
@@ -179,7 +179,7 @@ export function receiptRows(
   const valid =
     payment.status === 'succeeded' &&
     payment.currency === 'INR' &&
-    payment.total_amount === 19900 &&
+    payment.total_amount === 9900 &&
     !payment.refund_status &&
     (!payment.dispute_status ||
       ['dispute_won', 'dispute_cancelled'].includes(payment.dispute_status)) &&
@@ -264,7 +264,7 @@ export async function syncCustomer(s: Services, customer: Customer) {
     const valid =
       p.status === 'succeeded' &&
       p.currency === 'INR' &&
-      p.total_amount === 19900 &&
+      p.total_amount === 9900 &&
       !p.refund_status &&
       !p.is_update_payment_method &&
       !(p.refunds || []).some((r) => r.status === 'succeeded') &&
@@ -340,7 +340,7 @@ export async function checkout(s: Services, user: User) {
       product_cart: [{ product_id: s.productId, quantity: 1 }],
       customer: { customer_id: customer.customer_id },
       billing_currency: 'INR',
-      mandate_min_amount_inr_paise: 19900,
+      mandate_min_amount_inr_paise: 9900,
       return_url: `${s.origin}/settings?checkout=returned`,
       cancel_url: `${s.origin}/settings?checkout=cancelled`,
       feature_flags: {

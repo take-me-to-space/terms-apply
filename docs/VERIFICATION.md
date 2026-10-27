@@ -1,5 +1,9 @@
 # Verification record
 
+## Dodo live product selection — 27 October 2026
+
+The owner changed the Plus price from ₹199 to ₹99/month and created live product `pdt_0NqegAAJpk3ARtAmQeqCF`. Server validation, account copy, and the current live-product migration now use ₹99. The production build passes. The full suite was not rerun for this price-only update. No live API key or webhook signing key has been configured here, and no payment has been taken. The owner must apply the new migration, add the Dodo live credentials/webhook in Netlify, then explicitly open checkout as described in BILLING.md.
+
 ## Microsoft Clarity — 23 October 2026
 
 Added project `z28dwmlrbn` to production builds. The primary app content is marked with Clarity's masking attributes so goals, pledges, reports and form content are hidden in session recordings. Netlify's content security policy allows Clarity's script and telemetry hosts. The privacy page now describes page URLs, interaction/device data, masking, operator access and Microsoft's policy. The production bundle compiled successfully. A live request to Clarity and a recording in the owner's Clarity dashboard still need confirmation after Netlify deploy; no external project dashboard is connected here.

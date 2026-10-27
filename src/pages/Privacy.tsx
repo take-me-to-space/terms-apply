@@ -88,7 +88,7 @@ export function Privacy() {
         commitments per calendar month, resetting at 00:00 UTC on the first.
         Drafts do not count. Withdrawal does not restore the allowance.
         Commitments made before the billing rollout do not count. Plus includes
-        unlimited new commitments for ₹199 per month, including taxes. Checkout
+        unlimited new commitments for ₹99 per month, including taxes. Checkout
         is optional; the free plan does not require a card. Existing records,
         reports, exports, and reminders remain accessible on either plan.
       </p>

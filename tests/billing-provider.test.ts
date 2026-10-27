@@ -28,7 +28,7 @@ const product = {
   price: {
     type: 'recurring_price',
     currency: 'INR',
-    price: 19900,
+    price: 9900,
     tax_inclusive: true,
     payment_frequency_count: 1,
     payment_frequency_interval: 'Month',
@@ -47,7 +47,7 @@ const payment = {
   payment_id: 'pay_alice',
   customer: { customer_id: 'cus_alice' },
   currency: 'INR',
-  total_amount: 19900,
+  total_amount: 9900,
   status: 'succeeded',
   charge_type: 'new',
   service_periods: [period],
@@ -254,7 +254,7 @@ function signedRequest(payload: unknown, { old = false, id = 'evt-one' } = {}) {
   );
 }
 describe('provider boundary', () => {
-  it('only accepts the configured INR 199 monthly, tax-inclusive, no-trial product', () => {
+  it('only accepts the configured INR 99 monthly, tax-inclusive, no-trial product', () => {
     expect(() => validateProduct(product)).not.toThrow();
     for (const price of [
       { price: 199 },
@@ -315,7 +315,7 @@ describe('provider boundary', () => {
       product_cart: [{ product_id: 'pdt_test', quantity: 1 }],
       customer: { customer_id: 'cus_alice' },
       return_url: `${s.origin}/settings?checkout=returned`,
-      mandate_min_amount_inr_paise: 19900,
+      mandate_min_amount_inr_paise: 9900,
     });
     expect(JSON.stringify(call.body)).not.toMatch(/goal|pledge|bob|cheap/);
     expect(call.idempotency).toBe('terms-apply-checkout-request-one');

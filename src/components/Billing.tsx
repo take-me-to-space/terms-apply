@@ -58,7 +58,7 @@ export function Billing() {
             {state.paid ? 'Terms Apply Plus' : 'Free'}
           </h2>
         </div>
-        <p className="billing-price">{state.paid ? '₹199 / month' : '₹0'}</p>
+        <p className="billing-price">{state.paid ? '₹99 / month' : '₹0'}</p>
       </div>
       {state.test_mode && (
         <p className="quiet-banner">
@@ -107,7 +107,7 @@ export function Billing() {
                 setAgreed(false);
               }}
             >
-              Plus · ₹199/month
+              Plus · ₹99/month
             </button>
           )}
         {state.has_customer && (
@@ -149,13 +149,13 @@ export function Billing() {
           }}
         >
           <div className="stack">
-            <p className="billing-price">₹199 / month</p>
+            <p className="billing-price">₹99 / month</p>
             <p>
               Unlimited new commitments. Your reminders and check-ins work the
               same way.
             </p>
             <p>
-              ₹199 is charged now and each month until you cancel. Taxes are
+              ₹99 is charged now and each month until you cancel. Taxes are
               included. Cancel renewal in Account; access lasts through the
               period you paid for. Your pledge never creates a charge.
             </p>
@@ -174,7 +174,7 @@ export function Billing() {
                 onChange={(e) => setAgreed(e.target.checked)}
               />
               <span>
-                I agree to ₹199 monthly recurring billing until I cancel.
+                I agree to ₹99 monthly recurring billing until I cancel.
               </span>
             </label>
             {error && <Alert>{error}</Alert>}

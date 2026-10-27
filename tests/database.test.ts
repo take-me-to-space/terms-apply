@@ -487,7 +487,7 @@ describe('account deletion', () => {
 async function enableBilling(environment = 'test_mode') {
   await admin();
   await db.query(
-    "update billing_config set enabled=true,environment=$1,started_at=now()-interval '1 day'",
+    "update billing_config set enabled=true,environment=$1,product_id='pdt_0NqIIp0MtDK9rLdhZdqff',started_at=now()-interval '1 day'",
     [environment],
   );
   await db.query(
